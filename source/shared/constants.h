@@ -11,7 +11,8 @@ typedef enum {
 	default_hashmap_capacity = 4, // базовая вместимость хэш-таблицы
 	default_queue_capaicty = 10, // базовая вместимость очереди
 	default_body_size = 1024, // базовый размер тела запроса
-	default_request_size = 2048 // базовая длина запроса
+	default_request_size = 2048, // базовая длина запроса
+	base_length_dstr = 64 // базовая длина динамической строки
 } sizes;
 
 typedef enum {

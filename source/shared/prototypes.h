@@ -17,6 +17,16 @@ node_t *get_node_hashmap(HashMap *hashmap, char *key); // получение а�
 status_exec rehash_hashmap(HashMap **hashmap, size_t new_size); // рехэширование таблицы под новый размер
 node_t *create_node_hashmap(char *key, char *value); // создание нового узла
 void log_hashmap(HashMap *hashmap); // вывод хэш-таблицы
+void free_node(node_t *node); // освобождение узла связного списка
+void free_hashmap(HashMap *hashmap); // освобождение хэш-таблицы
+
+// infa/dstr.c - модуль для работы с динамической строкой
+
+void free_dstr(dstr_t *dstr);
+ssize_t dstr_init(dstr_t *string, size_t capacity);
+ssize_t dstr_append(dstr_t *string, const char *buff);
+ssize_t dstr_multi_append(dstr_t *string, size_t n, ...);
+void dstr_log(dstr_t *string);
 
 // infra/queue.c - модуль для работы с очередью
 
@@ -35,7 +45,8 @@ status_exec stop_thread_pool(Context *context); // остановка пула �
 
 // infra/config.c - модуль для работы с конфигурационным файлом
 
-status_exec add_config_to_hashmap(HashMap **hashmap,char *buffer); // функция-обёртка над add_hashmap с разделением строки buffer на токены
+status_exec add_parameter(HashMap **hashmap,char *buffer); // добавление параметра в конфигурацию
+int extract_param_long(HashMap *config, char *key, int default_val, int min_val, int max_val); // извлечение параметра конфигурации с числовым значением
 HashMap *get_default_config(void); // возвращение хэш-таблицы с конфигурационными параметрами по умолчанию
 HashMap *get_config(void); // чтение файла конфигурации и занесение значение в хэш-таблицу
 
@@ -60,7 +71,6 @@ ssize_t send_all(void *buff,size_t buffsize ,int client_fd); // отправка
 char *get_realpath(char *root, char *url); // получение канонизированного пути
 int is_file(char *path); // проверка на существование файла
 int is_dir(char *path); // проверка на существование директории
-char *get_cwd(size_t buffsize); // получение текущей рабочей директории
 char *get_extension(char *path); // получение расширения файла
 
 // infra/mime_type.c - модуль для определения MIME-типа
@@ -85,20 +95,14 @@ status_exec run_core(void); // запуск ядра (создание серв�
 
 // utils.c - модуль утилитарных функций
 
-char **split(char *source, char del, size_t max_length, size_t max_amount); // разделение строки на токены по СИМВОЛУ
 char **split_by_subs(char *buffer, const char *delim, size_t max_amount); // разделение строки на токены по ПОДСТРОКЕ
 long extract_long(char *string); // извлечение числа из строки
-int extract_param_long(HashMap *config, char *key, int default_val, int min_val, int max_val); // извлечение параметра конфигурации с числовым значением из хэш-таблицы
 size_t count_to_null(void **array); // подсчёт элементов до NULL
-void write_strings_to_buffer(char **strings, size_t count, char *buffer,size_t buffsize); // запись массива строк в буфер
-char *concat(char *dest, char *src, char *union_s); // соединяет строку dest со строкой src; помещает между ними union_s
 
 // free.c - модуль освобождения памяти
 
 void free_to_count(void **array, size_t count); // освобождение элементов массива по количеству
 void free_to_null(void **array); // освобождение элементов массива до первого NULL
-void free_node(node_t *node); // освобождение узла связного списка
-void free_hashmap(HashMap *hashmap); // освобождение хэш-таблицы
 void free_task(task_t *task); // освобождение задачи
 void free_queue(Queue *queue); // освобождение очереди
 void free_context(Context *context); // освобождение контекста приложения

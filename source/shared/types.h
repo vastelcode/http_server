@@ -5,6 +5,11 @@
 
 #define TYPES
 
+typedef struct {
+	char *buffer; // указатель на буфер (NULL-terminated)
+	size_t length; // текущая длина строки
+	size_t capacity; // вместимость строки
+} dstr_t; // динамическая строка
 
 typedef struct node {
 	char *key;

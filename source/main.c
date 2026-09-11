@@ -6,17 +6,15 @@
 
 int main(void)
 {
-	FILE *file = fopen("server.log","a");
+	// 1. Чтение конфигурационного файла
+	HashMap *config = get_config();
 
-	if(file == NULL) {
-		logger(ERROR, stdout, NULL, "%s: Не удалось открыть файл",__func__);
-		return 1;
-	}
+	if(config == NULL) return 1;
 
-	logger(INFO, stdout, NULL, "%s: Успешный запуск программы",__func__);
+	logger(INFO, stdout, NULL, "%s: Успешное чтение конфигурации",__func__);
 
-	logger(INFO, file, NULL, "%s: Запись в файл прошла успешно",__func__);
+	log_hashmap(config);
 
-	fclose(file);
+	free_hashmap(config);
 	return 0;
 }
