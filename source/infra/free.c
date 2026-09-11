@@ -32,21 +32,6 @@ void free_to_null(void **array)
 	}
 }
 
-void free_task(task_t *task)
-{
-	if(task) {
-		if(task->request) free(task->request);
-		free(task);
-	}
-}
-
-void free_queue(Queue *queue)
-{
-	for(size_t i = 0; i < queue->amount; i++) free_task(queue->data[i]);
-	free(queue->data);
-	free(queue);
-}
-
 void free_context(Context *context)
 {
 	if(context) {

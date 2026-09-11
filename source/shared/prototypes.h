@@ -8,17 +8,17 @@
 
 // infra/hashmap.c - модуль для работы с хэш-таблицей
 
+void free_node(node_t *node);
+void free_hashmap(HashMap *hashmap);
 unsigned long get_hash(char *string);
-HashMap *init_hashmap(size_t capacity); // инициализация хэш-таблицы
-ssize_t get_index(HashMap *hashmap, char *key); // получить индекс ячейки, в котором будет храниться узел с ключом key
-status_exec add_hashmap(HashMap **hashmap, char *key,  char *value); // добавление узла в хэш-таблицу
-status_exec delete_hashmap(HashMap *hashmap, char *key); // удаление узла по ключу
-node_t *get_node_hashmap(HashMap *hashmap, char *key); // получение адреса узла в хэш-таблице (или NULL в случае отсутствия)
-status_exec rehash_hashmap(HashMap **hashmap, size_t new_size); // рехэширование таблицы под новый размер
-node_t *create_node_hashmap(char *key, char *value); // создание нового узла
-void log_hashmap(HashMap *hashmap); // вывод хэш-таблицы
-void free_node(node_t *node); // освобождение узла связного списка
-void free_hashmap(HashMap *hashmap); // освобождение хэш-таблицы
+ssize_t get_index(HashMap *hashmap, char *key);
+HashMap *init_hashmap(size_t capacity);
+status_exec add_hashmap(HashMap **hashmap, char *key,  char *value);
+status_exec delete_hashmap(HashMap *hashmap, char *key);
+node_t *get_node_hashmap(HashMap *hashmap, char *key);
+status_exec rehash_hashmap(HashMap **hashmap, size_t new_size);
+node_t *create_node_hashmap(char *key, char *value);
+void log_hashmap(HashMap *hashmap);
 
 // infa/dstr.c - модуль для работы с динамической строкой
 
@@ -30,10 +30,11 @@ void dstr_log(dstr_t *string);
 
 // infra/queue.c - модуль для работы с очередью
 
-Queue *init_queue(size_t capacity); // инициализация очереди
-status_exec expand_queue(Queue *queue); // расширение очереди в два раза
-void push_queue(Queue *queue,task_t *task); // добавление задачи в конец
-task_t *shift_queue(Queue *queue, int releace); // удаление задачи из начала (если releace == 0, то будет возвращён указатель на удаленный элемент, иначе NULL и память будет освобождена)
+void free_task(task_t *task);
+void free_queue(Queue *queue);
+Queue *queue_init(size_t capacity);
+void queue_push(Queue *queue,task_t *task);
+task_t *queue_shift(Queue *queue, int releace);
 
 // infra/thread_pool.c - модуль для работы с пулом потоков
 
@@ -103,8 +104,6 @@ size_t count_to_null(void **array); // подсчёт элементов до NU
 
 void free_to_count(void **array, size_t count); // освобождение элементов массива по количеству
 void free_to_null(void **array); // освобождение элементов массива до первого NULL
-void free_task(task_t *task); // освобождение задачи
-void free_queue(Queue *queue); // освобождение очереди
 void free_context(Context *context); // освобождение контекста приложения
 void free_http(http_request *req); // освобождение структуры http-запроса
 
