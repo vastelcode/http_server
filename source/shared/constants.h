@@ -44,9 +44,16 @@ typedef enum {
 } server_operation;
 
 typedef enum statuses {
-	error = -1,
+	fail = -1,
 	success = 0,
 	warning = 1
 } status_exec; // статусы выполнения
+
+typedef enum {
+	DEBUG,
+	INFO,
+	WARN,
+	ERROR
+} status_log; // статусы вывода
 
 #endif

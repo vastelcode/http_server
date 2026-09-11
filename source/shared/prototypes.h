@@ -7,9 +7,10 @@
 #define PROTOTYPES
 
 // infra/hashmap.c - модуль для работы с хэш-таблицей
-unsigned long get_hash(char *string); // djb2 - хэш-функция
+
+unsigned long get_hash(char *string);
 HashMap *init_hashmap(size_t capacity); // инициализация хэш-таблицы
-size_t get_index(HashMap *hashmap, char *key); // получить индекс ячейки, в котором будет храниться узел с ключом key
+ssize_t get_index(HashMap *hashmap, char *key); // получить индекс ячейки, в котором будет храниться узел с ключом key
 status_exec add_hashmap(HashMap **hashmap, char *key,  char *value); // добавление узла в хэш-таблицу
 status_exec delete_hashmap(HashMap *hashmap, char *key); // удаление узла по ключу
 node_t *get_node_hashmap(HashMap *hashmap, char *key); // получение адреса узла в хэш-таблице (или NULL в случае отсутствия)
@@ -18,12 +19,14 @@ node_t *create_node_hashmap(char *key, char *value); // создание нов�
 void log_hashmap(HashMap *hashmap); // вывод хэш-таблицы
 
 // infra/queue.c - модуль для работы с очередью
+
 Queue *init_queue(size_t capacity); // инициализация очереди
 status_exec expand_queue(Queue *queue); // расширение очереди в два раза
 void push_queue(Queue *queue,task_t *task); // добавление задачи в конец
 task_t *shift_queue(Queue *queue, int releace); // удаление задачи из начала (если releace == 0, то будет возвращён указатель на удаленный элемент, иначе NULL и память будет освобождена)
 
 // infra/thread_pool.c - модуль для работы с пулом потоков
+
 status_exec init_thread_pool(Context *context); // инициализация пула потоков
 status_exec preprocessing(task_t *task); // предобработка задачи (чтение запроса от клиента, формирование http, определение обработчика)
 void submit_task(Context *context, task_t *task); // отправка задачи в очередь (обёртка над push_queue)
@@ -31,6 +34,7 @@ void *start_listen(void *arg); // функция потока (начало ож
 status_exec stop_thread_pool(Context *context); // остановка пула потоков
 
 // infra/config.c - модуль для работы с конфигурационным файлом
+
 status_exec add_config_to_hashmap(HashMap **hashmap,char *buffer); // функция-обёртка над add_hashmap с разделением строки buffer на токены
 HashMap *get_default_config(void); // возвращение хэш-таблицы с конфигурационными параметрами по умолчанию
 HashMap *get_config(void); // чтение файла конфигурации и занесение значение в хэш-таблицу
@@ -45,12 +49,14 @@ char *fast_setting_response(http_response *res, unsigned short code, char *messa
 void log_http(http_request *req);
 
 // infra/server.c - модуль для работы сервера
+
 int create_server(const struct sockaddr *addr, int n); // создание сервера (socket, setsockopt, bind, listen)
 ssize_t recv_all(void *buff,size_t buffsize ,int client_fd); // чтение всех данных из клиентского сокета в буфер
 ssize_t send_all(void *buff,size_t buffsize ,int client_fd); // отправка всех данных из буфера клиенту
 
 
 // infra/path.c - модуль для работы с путями
+
 char *get_realpath(char *root, char *url); // получение канонизированного пути
 int is_file(char *path); // проверка на существование файла
 int is_dir(char *path); // проверка на существование директории
@@ -62,18 +68,23 @@ HashMap *init_mime_table(size_t capacity); // инициализация таб�
 char *get_mime_type(HashMap *mime_table, char *path); // получение MIME-типа
 
 // infra/logger.c - модуль для вывода сообщений в терминал/файл
-void print_message(status_exec status, char *message, ...); // вывод форматированного сообщения со статусом (терминал)
+
+void logger(status_log status ,FILE *logfile ,pthread_mutex_t *mutex ,char *format , ...);
 
 // handlers/get_handler.c - модуль для обработки GET-запросов
+
 status_exec handle_get_request(task_t *task, HashMap *config);
 
 // handlers/post_handler.c - модуль для обработки POST-запросов
+
 status_exec handle_post_request(task_t *task, HashMap *config);
 
 // core.c - ядро приложения
+
 status_exec run_core(void); // запуск ядра (создание сервера, создание пула потоков, приём соединений)
 
 // utils.c - модуль утилитарных функций
+
 char **split(char *source, char del, size_t max_length, size_t max_amount); // разделение строки на токены по СИМВОЛУ
 char **split_by_subs(char *buffer, const char *delim, size_t max_amount); // разделение строки на токены по ПОДСТРОКЕ
 long extract_long(char *string); // извлечение числа из строки
@@ -83,6 +94,7 @@ void write_strings_to_buffer(char **strings, size_t count, char *buffer,size_t b
 char *concat(char *dest, char *src, char *union_s); // соединяет строку dest со строкой src; помещает между ними union_s
 
 // free.c - модуль освобождения памяти
+
 void free_to_count(void **array, size_t count); // освобождение элементов массива по количеству
 void free_to_null(void **array); // освобождение элементов массива до первого NULL
 void free_node(node_t *node); // освобождение узла связного списка
