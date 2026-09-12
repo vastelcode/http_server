@@ -19,9 +19,9 @@ typedef struct node {
 
 
 typedef struct {
-	size_t capacity;
-	size_t amount;
-	node_t **data;
+	size_t capacity; // кол-во ячеек в массиве
+	size_t amount; // кол-во узлов в таблице
+	node_t **data; // массив с данными
 } HashMap; // структура данных "Хэш-таблица"
 
 typedef struct {
@@ -53,11 +53,11 @@ typedef struct {
 } Queue; // структура данных "Очередь"
 
 typedef struct {
-	Queue *tasks;
-	HashMap *config;
-	size_t created_threads;
-	volatile int stop_requested;
-} Context; // констекст для функционирования приложения
+	Queue *tasks; // очередь задач
+	HashMap *config; // таблица конфигурации
+	size_t created_threads; // кол-во созданных потоков
+	volatile int stop_requested; // флаг остановки обработки запросов
+} Context; // констекст для функционирования пула потоков
 
 
 #endif

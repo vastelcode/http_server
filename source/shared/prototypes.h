@@ -10,15 +10,15 @@
 
 void free_node(node_t *node);
 void free_hashmap(HashMap *hashmap);
-unsigned long get_hash(char *string);
-ssize_t get_index(HashMap *hashmap, char *key);
-HashMap *init_hashmap(size_t capacity);
-status_exec add_hashmap(HashMap **hashmap, char *key,  char *value);
-status_exec delete_hashmap(HashMap *hashmap, char *key);
-node_t *get_node_hashmap(HashMap *hashmap, char *key);
-status_exec rehash_hashmap(HashMap **hashmap, size_t new_size);
-node_t *create_node_hashmap(char *key, char *value);
-void log_hashmap(HashMap *hashmap);
+unsigned long hashmap_get_hash(char *string);
+ssize_t hashmap_get_index(HashMap *hashmap, char *key);
+HashMap *hashmap_init(size_t capacity);
+status_exec hashmap_add(HashMap **hashmap, char *key,  char *value);
+status_exec hashmap_delete(HashMap *hashmap, char *key);
+node_t *hashmap_get_node(HashMap *hashmap, char *key);
+status_exec hashmap_rehash(HashMap **hashmap, size_t new_size);
+node_t *hashmap_create_node(char *key, char *value);
+void hashmap_log(HashMap *hashmap);
 
 // infa/dstr.c - модуль для работы с динамической строкой
 
@@ -38,11 +38,11 @@ task_t *queue_shift(Queue *queue, int releace);
 
 // infra/thread_pool.c - модуль для работы с пулом потоков
 
-status_exec init_thread_pool(Context *context); // инициализация пула потоков
-status_exec preprocessing(task_t *task); // предобработка задачи (чтение запроса от клиента, формирование http, определение обработчика)
-void submit_task(Context *context, task_t *task); // отправка задачи в очередь (обёртка над push_queue)
-void *start_listen(void *arg); // функция потока (начало ожидания прихода задач)
-status_exec stop_thread_pool(Context *context); // остановка пула потоков
+status_exec thread_pool_start(Context *context, int amount_threads);
+status_exec thead_pool_preprocessing(task_t *task); // предобработка задачи (чтение запроса от клиента, формирование http, определение обработчика)
+void thread_pool_submit(Context *context, task_t *task); // отправка задачи в очередь (обёртка над push_queue)
+void *thread_pool_routine(void *arg); // функция потока (начало ожидания прихода задач)
+status_exec thread_pool_stop(Context *context); // остановка пула потоков
 
 // infra/config.c - модуль для работы с конфигурационным файлом
 
@@ -84,15 +84,7 @@ void logger(status_log status ,FILE *logfile ,pthread_mutex_t *mutex ,char *form
 
 // handlers/get_handler.c - модуль для обработки GET-запросов
 
-status_exec handle_get_request(task_t *task, HashMap *config);
-
 // handlers/post_handler.c - модуль для обработки POST-запросов
-
-status_exec handle_post_request(task_t *task, HashMap *config);
-
-// core.c - ядро приложения
-
-status_exec run_core(void); // запуск ядра (создание сервера, создание пула потоков, приём соединений)
 
 // utils.c - модуль утилитарных функций
 
@@ -104,7 +96,6 @@ size_t count_to_null(void **array); // подсчёт элементов до NU
 
 void free_to_count(void **array, size_t count); // освобождение элементов массива по количеству
 void free_to_null(void **array); // освобождение элементов массива до первого NULL
-void free_context(Context *context); // освобождение контекста приложения
 void free_http(http_request *req); // освобождение структуры http-запроса
 
 #endif

@@ -8,6 +8,14 @@
 #include "../shared/types.h"
 #include "../shared/constants.h"
 
+/**
+ * @brief Освобождение задачи
+ *
+ * @param[in, out]  task  Указатель на структуру задачи, подлежащую освобождению
+ *
+ * @note Если task не NULL, освобождается память, занятая полем request,
+ *       а затем и сама структура.
+ */
 void free_task(task_t *task)
 {
 	if(task) {
@@ -16,13 +24,36 @@ void free_task(task_t *task)
 	}
 }
 
+/**
+ * @brief Освобождение очереди
+ *
+ * @param[in,out]  queue  Указатель на структуру очереди, подлежащую освобождению
+ *
+ * @note Освобождаются все задачи, находящиеся в очереди, массив данных
+ *       queue->data и сама структура queue.
+ * @see free_task
+ */
 void free_queue(Queue *queue)
 {
-	for(size_t i = 0; i < queue->amount; i++) free_task(queue->data[i]);
+	for(size_t i = 0; queue->data[i] != NULL; i++) free_task(queue->data[i]);
 	free(queue->data);
 	free(queue);
 }
 
+/**
+ * @brief Инициализация очереди
+ *
+ * @param[in]  capacity  Начальное количество ячеек в массиве
+ *
+ * @return
+ * - Указатель на структуру Queue в случае успеха
+ * @return
+ * - NULL в случае ошибки
+ *
+ * @note Выделяется память под структуру Queue и массив данных. Поля
+ *       capacity и amount инициализируются соответствующими значениями.
+ * @see free_queue
+ */
 Queue *queue_init(size_t capacity)
 {
 	Queue *queue = calloc(1, sizeof(Queue)); // выделяем память на структуру
@@ -32,7 +63,7 @@ Queue *queue_init(size_t capacity)
 		return NULL;
 	}
 
-	queue->data = calloc(capacity, sizeof(task_t *)); // выделяем память на массив с данными
+	queue->data = calloc(capacity + 1, sizeof(task_t *)); // выделяем память на массив с данными
 
 	if(queue->data == NULL) {
 		logger(ERROR, stdout, NULL, "%s: Не удалось выделить память", __func__);
@@ -47,6 +78,17 @@ Queue *queue_init(size_t capacity)
 	return queue;
 }
 
+/**
+ * @brief Добавление задачи в очередь
+ *
+ * @param[in,out]  queue  Указатель на структуру очереди
+ * @param[in]      task   Указатель на задачу, добавляемую в очередь
+ *
+ * @note Если очередь заполнена (amount == capacity), выводится предупреждение
+ *       и добавление не производится. В противном случае задача добавляется
+ *       в конец массива, а счётчик amount увеличивается.
+ * @see queue_shift
+ */
 void queue_push(Queue *queue, task_t *task)
 {
 	if(queue->amount == queue->capacity) {
@@ -57,6 +99,25 @@ void queue_push(Queue *queue, task_t *task)
 	queue->data[queue->amount++] = task; // увеличиваем счётчик элементов и добавляем новый элемент в конец массива
 }
 
+/**
+ * @brief Извлечение задачи из очереди
+ *
+ * @param[in,out]  queue    Указатель на структуру очереди
+ * @param[in]      releace  Флаг освобождения памяти (0 - не освобождать, 1 - освободить)
+ *
+ * @return
+ * - Указатель на извлечённую задачу task_t, если releace == 0
+ * @return
+ * - NULL, если releace != 0 или очередь пуста
+ *
+ * @note Если очередь пуста, выводится предупреждение и возвращается NULL.
+ *       В противном случае сохраняется указатель на первый элемент, все
+ *       последующие элементы сдвигаются на одну позицию влево, счётчик
+ *       amount уменьшается. Если установлен флаг releace, извлечённая
+ *       задача освобождается через free_task.
+ * @see queue_push
+ * @see free_task
+ */
 task_t *queue_shift(Queue *queue, int releace)
 {
 	if(queue->amount < 1) {

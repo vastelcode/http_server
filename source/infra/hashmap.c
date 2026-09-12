@@ -7,6 +7,11 @@
 #include "../shared/prototypes.h"
 #include "../shared/types.h"
 
+/**
+ * @brief Освобождение узла связного списка
+ *
+ * @param[in, out]  node  Указатель на структуру, подлежащую освобождению
+ */
 void free_node(node_t *node)
 {
 	if(node) {
@@ -18,6 +23,12 @@ void free_node(node_t *node)
 	}
 }
 
+/**
+ * @brief Освобождение хэш-таблицы
+ * 
+ * @param[in,out] hashmap  Указатель на структуру, подлежащую освобождению
+ * @note Полное освобождение структуры: каждый узел hashmap->data, указатель hashmap->data, указатель hashmap
+ */
 void free_hashmap(HashMap *hashmap)
 {
 	for(size_t i = 0; i < hashmap->capacity; i++) {
@@ -51,9 +62,9 @@ void free_hashmap(HashMap *hashmap)
  * @return
  * 	- unsigned long, отличное от нуля, при успехе
  *
- * @see get_index
+ * @see hashmap_get_index
  */
-unsigned long get_hash(char *string)
+unsigned long hashmap_get_hash(char *string)
 {
 	if(string == NULL) {
 		logger(ERROR ,stdout, NULL, "%s: Ключ имеет неопределённое значение",__func__);
@@ -69,23 +80,14 @@ unsigned long get_hash(char *string)
 /**
  * @brief Инициализация хэш-таблицы
  *
- * Подробное описание: что делает функция, зачем она нужна,
- * какие алгоритмы использует, какие особенности имеет.
+ * @param[in]  capacity Начальное количество ячеек в массиве
  *
- * @param[in]  param1  Описание первого входного параметра.
- * @param[in]  param2  Описание второго входного параметра.
- * @param[out] result  Указатель, куда будет записан результат.
- * @param[in,out] buf  Буфер, который читается и модифицируется.
- *
- * @return Описание возвращаемого значения.
- *         - 0 при успехе
- *         - -1 при ошибке (errno устанавливается)
- *
- * @note Дополнительные замечания, предупреждения, ограничения.
- * @warning Важные предупреждения (например, не потокобезопасно).
- * @see related_function() Связанные функции.
+ * @return
+ * - Указатель на структуру HashMap в случае успеха
+ * @return
+ * - NULL в случае ошибки
  */
-HashMap *init_hashmap(size_t capacity)
+HashMap *hashmap_init(size_t capacity)
 {
     HashMap *hashmap = calloc(1, sizeof(HashMap)); // выделяем память на структуру
 
@@ -107,15 +109,43 @@ HashMap *init_hashmap(size_t capacity)
     return hashmap;
 }
 
-ssize_t get_index(HashMap *hashmap, char *key)
+/**
+ * @brief Получение индекса ячейки, в которой лежит узел с данным ключом
+ *
+ * @param[in]  hashmap  Указатель на структуру хэш-таблицы
+ * @param[in]  key  Указатель на строку, содержащую ключ
+ *
+ * @return
+ * - действительный индекс в случае успеха
+ * @return
+ * - -1 в случае неудачи
+ *
+ * @note hashmap и key должны быть заранее определены
+ */
+ssize_t hashmap_get_index(HashMap *hashmap, char *key)
 {
     if (hashmap == NULL || key == NULL) return -1;
 
-    unsigned long hash = get_hash(key);
+    unsigned long hash = hashmap_get_hash(key);
     return hash % hashmap->capacity;
 }
 
-node_t *create_node_hashmap(char *key, char *value)
+/**
+ * @brief Создание нового узла хэш-таблицы
+ *
+ * @param[in]  key    Указатель на строку с ключом
+ * @param[in]  value  Указатель на строку со значением
+ *
+ * @return
+ * - Указатель на созданный узел node_t в случае успеха
+ * @return
+ * - NULL в случае ошибки
+ *
+ * @note Ключ и значение должны быть заранее определены и представлять собой
+ *       null-терминированные строки. Память под key и value выделяется копированием.
+ * @see free_node
+ */
+node_t *hashmap_create_node(char *key, char *value)
 {
     node_t *new_node = calloc(1, sizeof(node_t));
 
@@ -153,7 +183,18 @@ node_t *create_node_hashmap(char *key, char *value)
     return new_node;
 }
 
-void log_hashmap(HashMap *hashmap)
+/**
+ * @brief Вывод содержимого хэш-таблицы в стандартный поток вывода
+ *
+ * @param[in]  hashmap  Указатель на структуру хэш-таблицы
+ *
+ * @note Функция предназначена для отладочного вывода. Для каждого непустого
+ *       бакета выводится его индекс и все узлы связного списка в формате:
+ *       "(%ld) Node: %s %s\n".
+ * @see hashmap_add
+ * @see hashmap_get_node
+ */
+void hashmap_log(HashMap *hashmap)
 {
     for (size_t i = 0; i < hashmap->capacity; i++) {
         node_t *node = hashmap->data[i];
@@ -164,11 +205,30 @@ void log_hashmap(HashMap *hashmap)
     }
 }
 
-status_exec rehash_hashmap(HashMap **hashmap, size_t new_size)
+/**
+ * @brief Рехеширование хэш-таблицы
+ *
+ * @param[in,out]  hashmap   Указатель на указатель структуры хэш-таблицы
+ * @param[in]      new_size  Новый размер массива бакетов
+ *
+ * @return
+ * - success при успешном выполнении
+ * @return
+ * - fail в случае ошибки
+ *
+ * @note Если new_size равен 0, используется значение
+ *       default_hashmap_capacity * 2. При успехе старая таблица
+ *       освобождается, а *hashmap указывает на новую. При ошибке
+ *       исходная таблица остаётся без изменений.
+ * @see hashmap_init
+ * @see hashmap_add
+ * @see free_hashmap
+ */
+status_exec hashmap_rehash(HashMap **hashmap, size_t new_size)
 {
     if (new_size <= 0) new_size = default_hashmap_capacity * 2;
 
-    HashMap *new = init_hashmap(new_size); // выделяем память на новую таблицу
+    HashMap *new = hashmap_init(new_size); // выделяем память на новую таблицу
 
     if (new == NULL) return fail;
 
@@ -178,7 +238,7 @@ status_exec rehash_hashmap(HashMap **hashmap, size_t new_size)
 
         while (node) {
             
-            if (add_hashmap(&new, node->key, node->value) == fail) {
+            if (hashmap_add(&new, node->key, node->value) == fail) {
                 free_hashmap(new);
                 return fail;
             }
@@ -193,14 +253,30 @@ status_exec rehash_hashmap(HashMap **hashmap, size_t new_size)
     return success;
 }
 
-node_t *get_node_hashmap(HashMap *hashmap, char *key)
+/**
+ * @brief Получение узла по ключу
+ *
+ * @param[in]  hashmap  Указатель на структуру хэш-таблицы
+ * @param[in]  key      Указатель на строку с ключом
+ *
+ * @return
+ * - Указатель на найденный узел node_t в случае успеха
+ * @return
+ * - NULL в случае ошибки или отсутствия узла
+ *
+ * @note Поиск выполняется по цепочке коллизий в бакете, индекс которого
+ *       вычисляется через hashmap_get_index.
+ * @see hashmap_get_index
+ * @see hashmap_get_hash
+ */
+node_t *hashmap_get_node(HashMap *hashmap, char *key)
 {
     if (key == NULL) {
         logger(ERROR, stdout, NULL, "%s: Ключ имеет неопределённое значение", __func__);
         return NULL;
     }
 
-    ssize_t index = get_index(hashmap, key); // получаем индекс
+    ssize_t index = hashmap_get_index(hashmap, key); // получаем индекс
 
     if (index == -1)
         return NULL;
@@ -217,7 +293,26 @@ node_t *get_node_hashmap(HashMap *hashmap, char *key)
 }
 
 
-status_exec add_hashmap(HashMap **hashmap, char *key, char *value)
+/**
+ * @brief Добавление или обновление пары ключ-значение в хэш-таблице
+ *
+ * @param[in,out]  hashmap  Указатель на указатель структуры хэш-таблицы
+ * @param[in]      key      Указатель на строку с ключом
+ * @param[in]      value    Указатель на строку со значением
+ *
+ * @return
+ * - success при успешном выполнении
+ * @return
+ * - fail в случае ошибки
+ *
+ * @note Если ключ уже существует, значение обновляется. Если новое значение
+ *       совпадает со старым, функция завершается успешно без перезаписи.
+ *       При заполнении таблицы автоматически выполняется рехеширование.
+ * @see hashmap_rehash
+ * @see hashmap_get_node
+ * @see hashmap_create_node
+ */
+status_exec hashmap_add(HashMap **hashmap, char *key, char *value)
 {
     if (key == NULL || value == NULL) {
         logger(ERROR, stdout, NULL, "%s: Ключ или значение неопределены", __func__);
@@ -226,11 +321,11 @@ status_exec add_hashmap(HashMap **hashmap, char *key, char *value)
 
     // Если таблица заполнена – рехешируем, передавая адрес указателя
     if ((*hashmap)->capacity == (*hashmap)->amount) {
-        if (rehash_hashmap(hashmap, (*hashmap)->capacity * 2) == fail)
+        if (hashmap_rehash(hashmap, (*hashmap)->capacity * 2) == fail)
             return fail;
     }
 
-    ssize_t index = get_index(*hashmap, key);
+    ssize_t index = hashmap_get_index(*hashmap, key);
 
     if (index == -1) {
         logger(ERROR, stdout, NULL, "%s: Не удалось получить индекс", __func__);
@@ -240,7 +335,7 @@ status_exec add_hashmap(HashMap **hashmap, char *key, char *value)
     size_t vallen = strlen(value);
 
     // Проверяем, есть ли уже такой ключ
-    node_t *founded = get_node_hashmap(*hashmap, key);
+    node_t *founded = hashmap_get_node(*hashmap, key);
     if (founded) {
 
 		if(strcmp(founded->value, value) == 0) return success; // если ключи совпадают
@@ -266,7 +361,7 @@ status_exec add_hashmap(HashMap **hashmap, char *key, char *value)
         current = current->next;
     }
 
-    node_t *new_node = create_node_hashmap(key, value);
+    node_t *new_node = hashmap_create_node(key, value);
     if (new_node == NULL)
         return fail;
 
@@ -279,21 +374,37 @@ status_exec add_hashmap(HashMap **hashmap, char *key, char *value)
     return success;
 }
 
-status_exec delete_hashmap(HashMap *hashmap, char *key)
+/**
+ * @brief Удаление узла по ключу
+ *
+ * @param[in,out]  hashmap  Указатель на структуру хэш-таблицы
+ * @param[in]      key      Указатель на строку с ключом
+ *
+ * @return
+ * - success при успешном выполнении
+ * @return
+ * - fail в случае ошибки
+ *
+ * @note При успешном удалении освобождается память, занятая узлом, через
+ *       free_node, а связи в цепочке коллизий восстанавливаются.
+ * @see hashmap_get_node
+ * @see free_node
+ */
+status_exec hashmap_delete(HashMap *hashmap, char *key)
 {
     if (key == NULL) {
         logger(ERROR, stdout, NULL, "%s: Ключ имеет неопределённое значение", __func__);
         return fail;
     }
 
-    node_t *target = get_node_hashmap(hashmap, key);
+    node_t *target = hashmap_get_node(hashmap, key);
 
     if (!target) {
         logger(ERROR, stdout, NULL, "%s: Узел с таким ключом отсуствует", __func__);
         return fail;
     }
 
-    ssize_t index = get_index(hashmap, key);
+    ssize_t index = hashmap_get_index(hashmap, key);
 
     if (index == -1) {
         logger(ERROR, stdout, NULL, "%s: Не удалось получить индекс", __func__);

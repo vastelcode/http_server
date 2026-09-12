@@ -15,7 +15,7 @@ char *standart_config[] = {"port=8080","threads=4","logfile=server.log","root=ww
 
 int extract_param_long(HashMap *config, char *key, int default_val, int min_val, int max_val)
 {	
-	node_t *node_key = get_node_hashmap(config,key);
+	node_t *node_key = hashmap_get_node(config,key);
 
 	long value;
 	if(node_key) value = extract_long(node_key->value);
@@ -49,7 +49,7 @@ status_exec add_parameter(HashMap **hashmap,char *buffer)
 	char *key = tokens[0];
 	char *value = tokens[1];
 
-	status_exec status_add = add_hashmap(hashmap, key, value);	 // добавляем пару ключ-значение в хэш-таблицу
+	status_exec status_add = hashmap_add(hashmap, key, value);	 // добавляем пару ключ-значение в хэш-таблицу
 	
 	if(status_add == fail) {
 		free_to_count((void **) tokens, 2);
@@ -63,7 +63,7 @@ status_exec add_parameter(HashMap **hashmap,char *buffer)
 
 HashMap *get_default_config(void)
 {
-	HashMap *hashmap = init_hashmap(default_hashmap_capacity); // выделяем память на хэш-таблицу
+	HashMap *hashmap = hashmap_init(default_hashmap_capacity); // выделяем память на хэш-таблицу
 
 	if(hashmap == NULL) {
 		logger(ERROR, stdout, NULL, "%s: Не удалось выделить память", __func__);

@@ -32,15 +32,6 @@ void free_to_null(void **array)
 	}
 }
 
-void free_context(Context *context)
-{
-	if(context) {
-		if(context->config) free_hashmap(context->config);
-		if(context->tasks) free_queue(context->tasks);
-		free(context);
-	}
-}
-
 void free_http(http_request *req)
 {
 	if(req) {
