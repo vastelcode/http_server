@@ -40,7 +40,7 @@ int main(void)
 	}
 
 	// 3. Инициализация очереди задач
-	
+
 	// 3.1 Извлечение количества потоков из конфигурации
 	int amount_threads = extract_param_long(config, "threads", default_amount_threads, min_amount_threads, max_amount_threads);
 
@@ -54,8 +54,31 @@ int main(void)
 
 	logger(INFO, stdout, NULL, "%s: Успешная инициализация очереди",__func__);
 
-	free_hashmap(config);
-	free_queue(tasks);
+	// 4. Запуск пула потоков
+
+	// 4.1 Формирование контекста
+	Context ctx = {0};
+	ctx.tasks = tasks;
+	ctx.config = config;
+
+	// 4.2 Запуск
+	if(thread_pool_start(&ctx, amount_threads) == fail) {
+		logger(ERROR, stdout, NULL, "%s: Не удалось запустить потоки выполнения",__func__);
+		free_hashmap(config);
+		free_queue(tasks);
+		return 4;
+	}
+	
+	// ТЕСТ: заполняем очередь задачами
+	for(size_t i = 0; i < 20; i++) {
+		task_t *task = calloc(1, sizeof(task_t));
+		task->client_fd = i;
+
+		thread_pool_submit(&ctx, task);
+	}
+
+	thread_pool_stop(&ctx);
+	logger(INFO, stdout, NULL, "%s: Работа завершена",__func__);
 
 	return 0;
 }

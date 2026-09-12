@@ -40,7 +40,7 @@ typedef struct {
 	char *body;
 } http_response; // структура HTTP-ответа
 
-typedef struct task{
+typedef struct task {
 	int client_fd; // клиентский сокет
 	http_request *request; // структура HTTP-запроса
 	status_exec (* handler) (struct task *task, HashMap *config); // обработчик задачи

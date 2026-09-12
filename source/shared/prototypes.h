@@ -39,7 +39,7 @@ task_t *queue_shift(Queue *queue, int releace);
 // infra/thread_pool.c - модуль для работы с пулом потоков
 
 status_exec thread_pool_start(Context *context, int amount_threads);
-status_exec thead_pool_preprocessing(task_t *task); // предобработка задачи (чтение запроса от клиента, формирование http, определение обработчика)
+status_exec thread_pool_preprocessing(task_t *task); // предобработка задачи (чтение запроса от клиента, формирование http, определение обработчика)
 void thread_pool_submit(Context *context, task_t *task); // отправка задачи в очередь (обёртка над push_queue)
 void *thread_pool_routine(void *arg); // функция потока (начало ожидания прихода задач)
 status_exec thread_pool_stop(Context *context); // остановка пула потоков

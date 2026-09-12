@@ -131,6 +131,7 @@ task_t *queue_shift(Queue *queue, int releace)
 		queue->data[i] = queue->data[i + 1]; // осуществляем сдвиг массива
 
 	queue->amount--; // уменьшаем счётчик
+	queue->data[queue->amount] = NULL; // обнуляем удалённый элемент
 
 	if(releace) {
 		free(target); // освобождаем память
