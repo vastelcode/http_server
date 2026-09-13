@@ -19,7 +19,24 @@ static pthread_mutex_t mutexLog;
 status_exec test_handler(task_t *task, HashMap *config)
 {
 	if(config == NULL) return fail;
-	logger(INFO, stdout, &mutexLog, "%s: Файловый дескриптор = %d", __func__, task->client_fd);
+
+	char *response = "Hello !";
+
+	ssize_t n = send(task->client_fd, response, strlen(response), 0);
+
+	if(n == -1) {
+		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при отправке данных клиенту",__func__);
+		return fail;
+	}
+
+	else if(n == 0) {
+		logger(INFO, stdout, &mutexLog, "%s: Клиент закрыл соединение",__func__);
+		close(task->client_fd);
+		return success;
+	}
+
+	logger(INFO, stdout, &mutexLog, "%s: Запрос успешно отработан",__func__);
+	close(task->client_fd);
 	return success;
 }
 
@@ -95,7 +112,7 @@ void *thread_pool_routine(void *arg)
 
 			if(target->handler(target, ctx->config) == fail) {
 				logger(ERROR, stdout, &mutexLog, "%s: Не удалось корректно обработать запрос",__func__);
-				// close(target->client_fd);
+				close(target->client_fd);
 			}
 
 			free_task(target);

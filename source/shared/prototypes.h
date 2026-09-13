@@ -60,12 +60,6 @@ char *translate_http(http_response *response); // запись ответа кл
 char *fast_setting_response(http_response *res, unsigned short code, char *message); // быстрая настройка структуры HTTP-ответа и запись структуру в буфер
 void log_http(http_request *req);
 
-// infra/server.c - модуль для работы сервера
-
-int create_server(const struct sockaddr *addr, int n); // создание сервера (socket, setsockopt, bind, listen)
-ssize_t recv_all(void *buff,size_t buffsize ,int client_fd); // чтение всех данных из клиентского сокета в буфер
-ssize_t send_all(void *buff,size_t buffsize ,int client_fd); // отправка всех данных из буфера клиенту
-
 
 // infra/path.c - модуль для работы с путями
 
@@ -81,6 +75,10 @@ char *get_mime_type(HashMap *mime_table, char *path); // получение MIME
 // infra/logger.c - модуль для вывода сообщений в терминал/файл
 
 void logger(status_log status ,FILE *logfile ,pthread_mutex_t *mutex ,char *format , ...);
+
+// server/socket.h - МОДУЛЬ ДЛЯ СОЗДАНИЯ И НАСТРОЙКИ СОКЕТОВ
+
+int socket_create(const struct sockaddr *addr, int backlog);
 
 // handlers/get_handler.c - модуль для обработки GET-запросов
 
