@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "shared/prototypes.h"
+#include "shared/logger.h"
+#include "shared/free.h"
 #include "shared/types.h"
 #include "shared/constants.h"
 

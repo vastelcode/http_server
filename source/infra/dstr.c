@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../shared/prototypes.h"
+#include "../shared/logger.h"
 #include "../shared/types.h"
 #include "../shared/constants.h"
 
@@ -16,20 +16,6 @@ void free_dstr(dstr_t *dstr)
 	}
 }
 
-/**
- * @brief Инициализация динамической строки
- *
- * @param[out]  string  Указатель на изменяемую структуру динамической строки
- * @param[in]  capacity Начальная вместимость строки
- * 
- * @return 
- * - -1 в случае ошибки
- * @return 
- * - 0 в случае успеха
- *
- * @note Выделяется память из кучи для поля buffer
- * @warning Указатель string должен быть заранее определённым
- */
 ssize_t dstr_init(dstr_t *string, size_t capacity)
 {
 	if(string == NULL) {
@@ -51,20 +37,6 @@ ssize_t dstr_init(dstr_t *string, size_t capacity)
 	return 0;
 }
 
-/**
- * @brief Вставка строки в конец буфера динамической строки
- *
- * @param[out]  string  Указатель на изменяемую структуру динамической строки
- * @param[in]  buff Указатель на строку для вставки
- * 
- * @return 
- * - -1 в случае ошибки
- * @return 
- * - кол-во вставленных символов в случае успеха
- *
- * @note Поле capacity изменяется ровно на столько символов, сколько нехватает для вставки
- * @warning Указатель string должен быть заранее определённым
- */
 ssize_t dstr_append(dstr_t *string, const char *buff)
 {
 	if(string == NULL || string->buffer == NULL) {
@@ -98,21 +70,7 @@ ssize_t dstr_append(dstr_t *string, const char *buff)
 	return bufflen;
 }
 
-/**
- * @brief Вставка нескольких строк в конец буфера динамической строки
- *
- * @param[out]  string  Указатель на изменяемую структуру динамической строки
- * @param[in]  n Количество строк для вставки
- * @param[in] buff Строки для вставки
- * 
- * @return 
- * - -1 в случае ошибки
- * @return 
- * - кол-во вставленных символов в случае успеха
- *
- * @note Поле capacity изменяется ровно на столько символов, сколько нехватает для вставки
- * @warning Указатель string должен быть заранее определённым
- */
+
 ssize_t dstr_multi_append(dstr_t *string, size_t n, ...)
 {
 	// определяем список остаточных аргументов

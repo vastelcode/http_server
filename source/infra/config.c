@@ -4,10 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
+#include "../shared/hashmap.h"
+#include "../shared/utils.h"
+#include "../shared/logger.h"
+#include "../shared/free.h"
+#include "../shared/dstr.h"
 #include "../shared/types.h"
 #include "../shared/constants.h"
-#include "../shared/prototypes.h"
 
 #define CONFIG_PATH "server.conf" // путь до конфигурационного файла
 

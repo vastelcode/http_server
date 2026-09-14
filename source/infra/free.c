@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 #include "../shared/types.h"
-#include "../shared/prototypes.h"
+#include "../shared/free.h"
+#include "../shared/hashmap.h"
 #include "../shared/constants.h"
 
 void free_to_count(void **array, size_t count)

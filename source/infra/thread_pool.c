@@ -4,10 +4,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/socket.h>
 
 #include "../shared/types.h"
-#include "../shared/prototypes.h"
 #include "../shared/constants.h"
+#include "../shared/hashmap.h"
+#include "../shared/logger.h"
+#include "../shared/queue.h"
 
 static pthread_t *th = NULL; // инициализируем массив потоков
 

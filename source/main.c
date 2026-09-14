@@ -10,8 +10,13 @@
 #include <signal.h>
 #include <errno.h>
 #include <poll.h>
-
-#include "shared/prototypes.h"
+#include "shared/logger.h"
+#include "shared/hashmap.h"
+#include "shared/queue.h"
+#include "shared/config.h"
+#include "shared/thread_pool.h"
+#include "shared/free.h"
+#include "shared/server.h"
 #include "shared/types.h"
 #include "shared/constants.h"
 
