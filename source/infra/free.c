@@ -32,16 +32,3 @@ void free_to_null(void **array)
 		array = NULL;
 	}
 }
-
-void free_http(http_request *req)
-{
-	if(req) {
-		if(req->method) free(req->method);
-		if(req->url) free(req->url);
-		if(req->version) free(req->version);
-		if(req->body) free(req->body);
-		if(req->headers) free_hashmap(req->headers);
-		
-		free(req);
-	}
-}

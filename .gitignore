@@ -4,3 +4,4 @@ main
 *.o
 www
 idea.md
+source/tests

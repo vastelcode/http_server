@@ -8,6 +8,5 @@
 
 void free_to_count(void **array, size_t count); // освобождение элементов массива по количеству
 void free_to_null(void **array); // освобождение элементов массива до первого NULL
-void free_http(http_request *req); // освобождение структуры http-запроса
 
 #endif

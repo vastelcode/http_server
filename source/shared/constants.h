@@ -30,7 +30,10 @@ typedef enum {
 
 	// размер тела запроса
 	min_body_size = 0,
-	max_body_size = UINT16_MAX
+	max_body_size = UINT16_MAX,
+
+	// размер пути запроса
+	max_path_len = 2048
 } min_max;
 
 typedef enum {

@@ -26,23 +26,47 @@ typedef struct {
 
 typedef struct {
 	char *version;
-	char *method;
-	char *url;
-	HashMap *headers;
-	char *body;
-} http_request; // структура HTTP-запроса
-
-typedef struct {
-	char *version;
 	char *status_message;
 	unsigned short code;
 	HashMap *headers;
 	char *body;
 } http_response; // структура HTTP-ответа
 
+typedef enum {
+    HTTP_METHOD_GET,
+    HTTP_METHOD_POST,
+    HTTP_METHOD_UNKNOWN
+} http_method_t;
+
+typedef enum {
+    HTTP_VERSION_1_0,
+    HTTP_VERSION_1_1,
+    HTTP_VERSION_2_0,
+    HTTP_VERSION_UNKNOWN
+} http_version_t;
+
+/**
+ * Разобранный HTTP-запрос.
+ *   method  — метод запроса
+ *   path    — путь без query-строки
+ *   query   — query-строка (без '?'), пустая если её нет
+ *   version — версия протокола
+ *   headers — HashMap: имя в нижнем регистре -> значение
+ *   body    — тело запроса (NULL если отсутствует), всегда null-terminated
+ */
+typedef struct {
+    http_method_t  method;
+    char path[max_path_len];
+    char query[max_path_len];
+    http_version_t version;
+    HashMap *headers;
+    char *body;
+    size_t body_len;
+} HttpRequest;
+
 typedef struct task {
 	int client_fd; // клиентский сокет
-	http_request *request; // структура HTTP-запроса
+	HttpRequest *request; // структура HTTP-запроса
 	status_exec (* handler) (struct task *task, HashMap *config); // обработчик задачи
 } task_t; // структура задачи
 

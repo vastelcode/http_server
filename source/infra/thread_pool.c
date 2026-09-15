@@ -11,6 +11,7 @@
 #include "../shared/hashmap.h"
 #include "../shared/logger.h"
 #include "../shared/queue.h"
+#include "../shared/http.h"
 
 static pthread_t *th = NULL; // инициализируем массив потоков
 
@@ -39,6 +40,24 @@ status_exec test_handler(task_t *task, HashMap *config)
 	}
 
 	logger(INFO, stdout, &mutexLog, "%s: Запрос успешно отработан",__func__);
+
+	char *request = "GET /index.html HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: curl/8.0\r\nAccept: */*\r\n\r\n";
+
+	HttpRequest http = {0};
+
+	if(http_parse_request(request, strlen(request), &http) == fail) {
+		logger(ERROR, stdout, &mutexLog, "%s: Не удалось произвести парсинг HTTP-запроса",__func__);
+		return fail;
+	}
+
+	const char *host = http_get_header(&http, "Host");
+
+	logger(DEBUG,stdout,&mutexLog,"%s: version = %s", __func__, http_version_to_string(http.version));
+
+	logger(DEBUG, stdout, &mutexLog, "%s: host = %s",__func__, host);
+
+	http_request_free(&http);
+
 	close(task->client_fd);
 	return success;
 }
