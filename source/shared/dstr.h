@@ -40,6 +40,21 @@ ssize_t dstr_init(dstr_t *string, size_t capacity);
  */
 ssize_t dstr_append(dstr_t *string, const char *buff);
 
+/**
+ * @brief Вставка форматной строки в конец буфера динамической строки
+ *
+ * @param[out]  string  Указатель на изменяемую структуру динамической строки
+ * @param[in]  format Форматная строка
+ * 
+ * @return 
+ * - -1 в случае ошибки
+ * @return 
+ * - кол-во вставленных символов в случае успеха
+ *
+ * @note Поле capacity изменяется ровно на столько символов, сколько нехватает для вставки
+ * @warning Указатель string должен быть заранее определённым
+ */
+ssize_t dstr_appendf(dstr_t *string, const char *format, ...);
 
 /**
  * @brief Вставка нескольких строк в конец буфера динамической строки

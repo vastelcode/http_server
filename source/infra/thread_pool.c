@@ -12,6 +12,7 @@
 #include "../shared/logger.h"
 #include "../shared/queue.h"
 #include "../shared/http.h"
+#include "../shared/core.h"
 
 static pthread_t *th = NULL; // инициализируем массив потоков
 
@@ -24,39 +25,7 @@ status_exec test_handler(task_t *task, HashMap *config)
 {
 	if(config == NULL) return fail;
 
-	char *response = "Hello !";
-
-	ssize_t n = send(task->client_fd, response, strlen(response), 0);
-
-	if(n == -1) {
-		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при отправке данных клиенту",__func__);
-		return fail;
-	}
-
-	else if(n == 0) {
-		logger(INFO, stdout, &mutexLog, "%s: Клиент закрыл соединение",__func__);
-		close(task->client_fd);
-		return success;
-	}
-
-	logger(INFO, stdout, &mutexLog, "%s: Запрос успешно отработан",__func__);
-
-	char *request = "GET /index.html HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: curl/8.0\r\nAccept: */*\r\n\r\n";
-
-	HttpRequest http = {0};
-
-	if(http_parse_request(request, strlen(request), &http) == fail) {
-		logger(ERROR, stdout, &mutexLog, "%s: Не удалось произвести парсинг HTTP-запроса",__func__);
-		return fail;
-	}
-
-	const char *host = http_get_header(&http, "Host");
-
-	logger(DEBUG,stdout,&mutexLog,"%s: version = %s", __func__, http_version_to_string(http.version));
-
-	logger(DEBUG, stdout, &mutexLog, "%s: host = %s",__func__, host);
-
-	http_request_free(&http);
+	http_send_error(task->client_fd, BadRequest);
 
 	close(task->client_fd);
 	return success;
@@ -102,11 +71,36 @@ status_exec thread_pool_stop(Context *context) {
     return success;
 }
 
-status_exec thread_pool_preprocessing(task_t *task)
+/* Преодобработка задачи (чтение данных от клиента, парсинг HTTP-запроса, директирование задачи)*/
+static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 {
-	/* Заглушка */
-	if(task == NULL) return fail;
+	if(!ctx) return fail; /* заглушка */
+
+	// 1. Читаем данные от клиента
+	char buffer[1024];
+
+	ssize_t n = recv(task->client_fd, buffer, sizeof(buffer), 0);
+
+	if(n <= 0) {
+		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при чтении данных от клиента",__func__);
+		return fail;
+	}
+
+	buffer[n] = '\0';
+
+	// 2. Парсим HTTP-запрос
+	HttpRequest req = {0};
+
+	if(http_parse_request(buffer, strlen(buffer), &req) == fail) {
+		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при парсинге HTTP-запроса",__func__);
+		return fail;
+	}
+
+	// 3. Помещаем задачу в диспетчер
+	// dispatch_request(&req, ctx->config, task->client_fd);
+
 	task->handler = test_handler;
+
 	return success;
 }
 
@@ -132,7 +126,7 @@ void *thread_pool_routine(void *arg)
 		// выполняем задачу
 		if(target) {
 
-			if(target->handler(target, ctx->config) == fail) {
+			if(target->handler && target->handler(target, ctx->config) == fail) {
 				logger(ERROR, stdout, &mutexLog, "%s: Не удалось корректно обработать запрос",__func__);
 				close(target->client_fd);
 			}
@@ -149,7 +143,7 @@ void thread_pool_submit(Context *context, task_t *task)
 	pthread_mutex_lock(&mutexTask);
 
 	// предобработка задачи
-	if(thread_pool_preprocessing(task) == fail) {
+	if(thread_pool_preprocessing(task, context) == fail) {
 		logger(ERROR, stdout, &mutexLog, "%s: Не удалось корректно обработать запрос",__func__);
 		pthread_mutex_unlock(&mutexTask);
 		close(task->client_fd);

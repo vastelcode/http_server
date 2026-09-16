@@ -70,6 +70,21 @@ ssize_t dstr_append(dstr_t *string, const char *buff)
 	return bufflen;
 }
 
+ssize_t dstr_appendf(dstr_t *string, const char *format, ...)
+{
+	// инициализируем список остаточных аргументов
+	va_list args;
+	va_start(args, format);
+
+	// записываем в буфер аргументы форматной строки
+	char message[4096];
+	vsnprintf(message, sizeof(message), format, args);
+
+	va_end(args);
+
+	// добавляем буфер в динамическую строку
+	return dstr_append(string, message);
+}
 
 ssize_t dstr_multi_append(dstr_t *string, size_t n, ...)
 {

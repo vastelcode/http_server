@@ -72,6 +72,36 @@ long extract_long(char *string)
 	return number;
 }
 
+char *to_lower(const char *s)
+{
+	size_t n = strlen(s);
+    char  *lower = malloc(n + 1);
+
+    if (!lower) {
+		logger(ERROR, stdout, NULL, "%s: Не удалось выделить память",__func__);
+		return NULL;
+	}
+
+    for (size_t i = 0; i < n; i++) {
+        char c = s[i];
+        lower[i] = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
+    }
+
+    lower[n] = '\0';
+
+	return lower;
+}
+
+char *dec_to_string(int n)
+{
+	char *s = malloc(sizeof(char) * 11);
+	if(!s) return NULL;
+	snprintf(s, 11, "%d", n);
+	s[11] = '\0';
+
+	return s;
+}
+
 size_t count_to_null(void **array)
 {
 	size_t amount = 0;

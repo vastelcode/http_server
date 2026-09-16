@@ -3,6 +3,7 @@
 
 #include "../shared/types.h"
 #include "../shared/hashmap.h"
+#include "../shared/utils.h"
 
 http_method_t http_method_from_string(const char *s)
 {
@@ -10,6 +11,8 @@ http_method_t http_method_from_string(const char *s)
 
     if (strcmp(s, "GET")     == 0) return HTTP_METHOD_GET;
     if (strcmp(s, "POST")    == 0) return HTTP_METHOD_POST;
+	if (strcmp(s, "PUT")    == 0) return HTTP_METHOD_PUT;
+	if (strcmp(s, "DELETE")    == 0) return HTTP_METHOD_DELETE;
 
     return HTTP_METHOD_UNKNOWN;
 }
@@ -19,6 +22,8 @@ const char *http_method_to_string(http_method_t m)
     switch (m) {
         case HTTP_METHOD_GET:     return "GET";
         case HTTP_METHOD_POST:    return "POST";
+        case HTTP_METHOD_PUT:    return "PUT";
+        case HTTP_METHOD_DELETE:    return "DELETE";
         default:                  return "UNKNOWN";
     }
 }
@@ -66,18 +71,47 @@ const char *http_get_header(const HttpRequest *req, const char *name)
 {
     if (!req || !req->headers || !name) return NULL;
 
-    size_t n = strlen(name);
-    char  *lower = malloc(n + 1);
-    if (!lower) return NULL;
+	char *lower_name = to_lower(name);
+	if(lower_name == NULL) return NULL;
 
-    for (size_t i = 0; i < n; i++) {
-        char c = name[i];
-        lower[i] = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
-    }
-    lower[n] = '\0';
-
-    node_t *node = hashmap_get_node(req->headers, lower);
-    free(lower);
+    node_t *node = hashmap_get_node(req->headers, lower_name);
+    free(lower_name);
 
     return node ? node->value : NULL;
+}
+
+const char *http_code_to_string(http_code_t code)
+{
+    switch (code) {
+        case OK:     return "OK";
+        case NotFound:    return "Not Found";
+        case NotAllowed:    return "Not Allowed";
+		case ForBidden: return "For Bidden";
+		case RequestEntityTooLarge: return "Request Entity Too Large";
+		case BadRequest: return "Bad Request";
+		case IntervalServerError: return "Interval Server Error";
+        default:                  return "UNKNOWN";
+    }
+}
+
+http_code_t http_code_from_string(const char *s) 
+{
+	if(!s) return HTTP_CODE_UNKWOWN;
+
+	char *lower_s = to_lower(s);
+	if(!lower_s) return HTTP_CODE_UNKWOWN;
+
+	http_code_t target = HTTP_CODE_UNKWOWN;
+
+	if(strcmp(lower_s, "ok") == 0) target = OK;
+	else if(strcmp(lower_s, "not allowed") == 0) target = NotAllowed;
+	else if(strcmp(lower_s, "not found") == 0) target = NotFound;
+	else if(strcmp(lower_s, "bad request") == 0) target = BadRequest;
+	else if(strcmp(lower_s, "for bidden") == 0) target = ForBidden;
+	else if(strcmp(lower_s, "request entity too large") == 0) target = RequestEntityTooLarge;
+	else if(strcmp(lower_s, "interval server error") == 0) target = IntervalServerError;
+
+	free(lower_s);
+
+	return target;
 }
