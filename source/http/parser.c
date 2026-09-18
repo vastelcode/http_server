@@ -106,6 +106,10 @@ void http_request_free(HttpRequest *req)
         free(req->body);
         req->body = NULL;
     }
+	if(req->path) {
+		free(req->path);
+		req->path = NULL;
+	}
     req->body_len = 0;
 }
 
@@ -143,8 +147,10 @@ static status_exec parse_request_line(char *line, HttpRequest *req)
         size_t path_len = (size_t)(qmark - target);
         if (path_len >= max_path_len) return fail;
 
-        memcpy(req->path, target, path_len);
-        req->path[path_len] = '\0';
+		req->path = malloc(path_len + 1);
+		if(!req->path) return fail;
+		strncpy(req->path, target, path_len);
+		req->path[path_len] = '\0';
 
         const char *q = qmark + 1;
         size_t q_len = strlen(q);
@@ -155,8 +161,10 @@ static status_exec parse_request_line(char *line, HttpRequest *req)
         size_t path_len = strlen(target);
         if (path_len >= max_path_len) return fail;
 
-        memcpy(req->path, target, path_len + 1);
-        req->query[0] = '\0';
+		req->path = malloc(path_len + 1);
+		if(!req->path) return fail;
+		strncpy(req->path, target, path_len);
+		req->path[path_len] = '\0';
     }
 
     return success;

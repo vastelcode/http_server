@@ -64,11 +64,10 @@ typedef enum {
  */
 typedef struct {
     http_method_t  method;
-    char path[max_path_len];
-    char query[max_path_len];
+    char *path, *body;
+	char query[max_path_len];
     http_version_t version;
     HashMap *headers;
-    char *body;
     size_t body_len;
 } HttpRequest;
 

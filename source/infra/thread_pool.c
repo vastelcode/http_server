@@ -10,6 +10,7 @@
 #include "../shared/constants.h"
 #include "../shared/hashmap.h"
 #include "../shared/logger.h"
+#include "../shared/path.h"
 #include "../shared/queue.h"
 #include "../shared/http.h"
 #include "../shared/core.h"
@@ -87,8 +88,26 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 	}
 
 	task->request = &req;
+	
+	// 3. Декодируем путь
+	char decoded_path[2048];
 
-	// 3. Помещаем задачу в диспетчер
+	if(path_url_decode(req.path, decoded_path, 2048) == fail) {
+		http_send_error(task->client_fd, BadRequest);
+		return fail;
+	}
+
+	free((&req)->path);
+
+	req.path = strdup(decoded_path);
+
+	if(req.path == NULL) {
+		logger(ERROR, stdout, &mutexLog, "%s: Не удалось копировать строку",__func__);
+		http_send_error(task->client_fd, IntervalServerError);
+		return fail;
+	}
+
+	// 4. Помещаем задачу в диспетчер
 	http_code_t code_dispatch = dispatch_request(task, ctx->config);
 
 	if(code_dispatch != OK) {
@@ -137,6 +156,7 @@ void thread_pool_submit(Context *context, task_t *task)
 	// предобработка задачи
 	if(thread_pool_preprocessing(task, context) == fail) {
 		pthread_mutex_unlock(&mutexTask);
+		free_task(task);
 		close(task->client_fd);
 		return;
 	}
