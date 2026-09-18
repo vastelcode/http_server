@@ -8,11 +8,13 @@
 #include "../shared/logger.h"
 #include "../shared/types.h"
 #include "../shared/constants.h"
+#include "../shared/http.h"
 
 void free_task(task_t *task)
 {
 	if(task) {
-		if(task->request) free(task->request);
+		if(task->request) http_request_free(task->request);
+		if(task->fullpath) free(task->fullpath);
 		free(task);
 	}
 }

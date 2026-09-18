@@ -92,14 +92,16 @@ char *to_lower(const char *s)
 	return lower;
 }
 
-char *dec_to_string(int n)
+int is_empty(const char *s)
 {
-	char *s = malloc(sizeof(char) * 11);
-	if(!s) return NULL;
-	snprintf(s, 11, "%d", n);
-	s[11] = '\0';
+	if(!s) return 1;
 
-	return s;
+	for(size_t i = 0; s[i] != '\0'; i++) {
+		if(s[i] == ' ' || s[i] == '\t') continue;
+		return 0;
+	}
+
+	return 1;
 }
 
 size_t count_to_null(void **array)

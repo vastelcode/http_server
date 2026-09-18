@@ -93,6 +93,7 @@ typedef struct {
 typedef struct task {
 	int client_fd; // клиентский сокет
 	HttpRequest *request; // структура HTTP-запроса
+	char *fullpath; // полный сформированный путь
 	status_exec (* handler) (struct task *task, HashMap *config); // обработчик задачи
 } task_t; // структура задачи
 

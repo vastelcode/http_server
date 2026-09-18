@@ -21,16 +21,6 @@ static pthread_mutex_t mutexTask;
 static pthread_cond_t condTask;
 static pthread_mutex_t mutexLog;
 
-status_exec test_handler(task_t *task, HashMap *config)
-{
-	if(config == NULL) return fail;
-
-	http_send_error(task->client_fd, BadRequest);
-
-	close(task->client_fd);
-	return success;
-}
-
 status_exec thread_pool_stop(Context *context) {
 
     // 1. Сигналим потокам о завершении
@@ -74,8 +64,6 @@ status_exec thread_pool_stop(Context *context) {
 /* Преодобработка задачи (чтение данных от клиента, парсинг HTTP-запроса, директирование задачи)*/
 static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 {
-	if(!ctx) return fail; /* заглушка */
-
 	// 1. Читаем данные от клиента
 	char buffer[1024];
 
@@ -83,6 +71,7 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 
 	if(n <= 0) {
 		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при чтении данных от клиента",__func__);
+		http_send_error(task->client_fd, IntervalServerError);
 		return fail;
 	}
 
@@ -93,13 +82,19 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 
 	if(http_parse_request(buffer, strlen(buffer), &req) == fail) {
 		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при парсинге HTTP-запроса",__func__);
+		http_send_error(task->client_fd, BadRequest);
 		return fail;
 	}
 
-	// 3. Помещаем задачу в диспетчер
-	// dispatch_request(&req, ctx->config, task->client_fd);
+	task->request = &req;
 
-	task->handler = test_handler;
+	// 3. Помещаем задачу в диспетчер
+	http_code_t code_dispatch = dispatch_request(task, ctx->config);
+
+	if(code_dispatch != OK) {
+		logger(INFO, stdout, &mutexLog, "%d (%s) %s %s",code_dispatch, http_code_to_string(code_dispatch),http_method_to_string(req.method), req.path);
+		return fail;
+	}
 
 	return success;
 }
@@ -126,10 +121,7 @@ void *thread_pool_routine(void *arg)
 		// выполняем задачу
 		if(target) {
 
-			if(target->handler && target->handler(target, ctx->config) == fail) {
-				logger(ERROR, stdout, &mutexLog, "%s: Не удалось корректно обработать запрос",__func__);
-				close(target->client_fd);
-			}
+			if(target->handler && target->handler(target, ctx->config) == fail) close(target->client_fd);
 
 			free_task(target);
 		}
@@ -144,7 +136,6 @@ void thread_pool_submit(Context *context, task_t *task)
 
 	// предобработка задачи
 	if(thread_pool_preprocessing(task, context) == fail) {
-		logger(ERROR, stdout, &mutexLog, "%s: Не удалось корректно обработать запрос",__func__);
 		pthread_mutex_unlock(&mutexTask);
 		close(task->client_fd);
 		return;

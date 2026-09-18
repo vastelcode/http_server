@@ -24,15 +24,14 @@ status_exec server_run(HashMap *config);
  * 
  * Определяет нужный обработчик задачи (static/cgi)
  *
- * @param[in]  req Указатель на структуру HTTP-запроса
+ * @param[in, out]  task Указатель на структуру задачи
  * @param[in]  config Указатель на хэш-таблицу, содержающую параметры конфигурации сервера
- * @param[in]  client_fd Дескриптор для общения с клиентом
  * 
  * @return Код ответа
  *
  * @warning В случае успеха, функция должна вернуть OK
  */
-http_code_t dispatch_request(HttpRequest *req, HashMap *config, int client_fd);
+http_code_t dispatch_request(task_t *task, HashMap *config);
 
 
 #endif
