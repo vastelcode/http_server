@@ -52,7 +52,7 @@ HashMap *hashmap_init(size_t capacity);
  * @see hashmap_get_node
  * @see hashmap_create_node
  */
-status_exec hashmap_add(HashMap **hashmap, char *key,  char *value);
+status_exec hashmap_add(HashMap **hashmap,const char *key,const char *value);
 
 /**
  * @brief Удаление узла по ключу
@@ -70,7 +70,7 @@ status_exec hashmap_add(HashMap **hashmap, char *key,  char *value);
  * @see hashmap_get_node
  * @see free_node
  */
-status_exec hashmap_delete(HashMap *hashmap, char *key);
+status_exec hashmap_delete(HashMap *hashmap,const char *key);
 
 /**
  * @brief Получение узла по ключу
@@ -88,7 +88,7 @@ status_exec hashmap_delete(HashMap *hashmap, char *key);
  * @see hashmap_get_index
  * @see hashmap_get_hash
  */
-node_t *hashmap_get_node(HashMap *hashmap, char *key);
+node_t *hashmap_get_node(HashMap *hashmap,const char *key);
 
 /**
  * @brief Вывод содержимого хэш-таблицы в стандартный поток вывода

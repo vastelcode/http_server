@@ -15,6 +15,8 @@ void free_task(task_t *task)
 	if(task) {
 		if(task->request) http_request_free(task->request);
 		if(task->fullpath) free(task->fullpath);
+		free(task->request);
+		task->request = NULL;
 		free(task);
 	}
 }

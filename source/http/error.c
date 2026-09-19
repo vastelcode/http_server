@@ -14,44 +14,47 @@
 
 status_exec http_send_error(int client_fd, http_code_t status_code)
 {
-	// 1. Инициализируем динамическую строку ответа
-	dstr_t res;
+	// 1. Инициализиурем структуру ответа
+	HttpResponse response = {0};
 
-	if(dstr_init(&res, 10) == -1) {
-		logger(ERROR, stdout, NULL, "%s: Не удалось сформировать ответ клиенту",__func__);
+	/* Базовые настройки */
+	response.version = HTTP_VERSION_1_1;
+	response.status_code = status_code;
+	response.body = (char *) http_code_to_string(status_code);
+	response.body_len = strlen(response.body);
+
+	/* Переводим размер тела в строку */
+	char body_size[sizeof(size_t)];
+	snprintf(body_size, sizeof(size_t), "%ld", response.body_len);
+
+	// 2. Заполняем заголовки
+
+	/* Инициализация хэш-таблицы */
+	response.headers = hashmap_init(10);
+
+	if(response.headers == NULL) return fail;
+
+	/* Тип контента, тип соединения, размер файла */
+	if(hashmap_add(&response.headers, "Content-Type","text/plain") == fail
+	|| hashmap_add(&response.headers, "Connection","close") == fail
+	|| hashmap_add(&response.headers, "Content-Length", body_size) == fail) {
+		free_hashmap(response.headers);
 		return fail;
 	}
 
-	// 2. Записываем статусную строку
+	// 3. Переводим структуру в строковый формат
+	char headers_buffer[MAX_SIZE_HEADERS];
 
-	// 2.1 Получаем статусное сообщение и версию ответа
-	const char *message = http_code_to_string(status_code);
-	const char *version = http_version_to_string(HTTP_VERSION_1_1);
-
-	// 2.2 Записываем строку
-	if(dstr_appendf(&res, "%s %d %s\r\n", version, status_code, message) == -1) {
-		logger(ERROR, stdout, NULL, "%s: Не удалось сформировать ответ клиенту",__func__);
-		free((&res)->buffer);
+	if(http_serialize_response(headers_buffer, sizeof(headers_buffer), response) == fail) {
+		free_hashmap(response.headers);
 		return fail;
 	}
 
-	// 3. Записываем заголовки и тело ответа
-
-	// 3.1 Записываем размер тела в строку
-	char body_size[20];
-	snprintf(body_size, sizeof(body_size), "%ld", strlen(message));
-
-	// 3.2 Записываем общую форматную строку
-	if(dstr_appendf(&res, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n%s", "Content-Type","text/plain","Content-Length",body_size ,"Connection","close", message) == -1) {
-		logger(ERROR, stdout, NULL, "%s: Не удалось сформировать ответ клиенту",__func__);
-		free((&res)->buffer);
-		return fail;
-	}
+	/* Освобождаем таблицу заголовков */
+	free_hashmap(response.headers);
 
 	// 4. Отправляем ответ
-	ssize_t n = send(client_fd, res.buffer, res.length, 0);
-
-	free((&res)->buffer);
+	ssize_t n = send(client_fd, headers_buffer, strlen(headers_buffer), 0);
 
 	if(n < 0) {
 		logger(ERROR, stdout, NULL, "%s: Не удалось отправить ответ клиенту",__func__);

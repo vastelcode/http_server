@@ -47,3 +47,29 @@ int socket_create(const struct sockaddr *addr, int backlog)
 
 	return sockfd;
 }
+
+ssize_t socket_send_all(int client_fd, const char *buffer, size_t buffsize)
+{
+	if(buffer == NULL) return -1;
+
+	/* кол-во отправленных байт */
+	size_t total = 0;
+
+	while(total < buffsize) {
+		/* Отправляем порцию данных клиенту */
+		ssize_t n = send(client_fd, buffer + total, buffsize - total , 0);
+
+		if(n == 0) {
+			logger(INFO, stdout, NULL, "%s: Клиент закрыл соединение",__func__);
+			break;
+		}
+		if(n < 0) {
+			logger(ERROR, stdout, NULL, "%s: Произошла ошибка при отправке данных клиенту",__func__);
+			return -1;
+		}
+
+		total += n;
+	}
+
+	return total;
+}

@@ -1,9 +1,9 @@
 // Public API - http
-
 #ifndef HTTP
 
 #include <stddef.h>
 #include <stdio.h>
+#include "dstr.h"
 #include "types.h"
 
 #define HTTP
@@ -42,6 +42,17 @@ status_exec http_parse_request(const char *buf, size_t len, HttpRequest *req);
 
 /** Освобождает все динамические ресурсы внутри запроса. */
 void http_request_free(HttpRequest *req);
+
+/**
+ * @brief Перевод структуры HttpResponse в строковый формат
+ * 
+ * @param[out] buf Буфер, куда будет записан результат
+ * @param[in] buffsize Размер буфера
+ * @param[in] res Структура ответа
+ * 
+ * @return success | fail
+ */
+status_exec http_serialize_response(char *buf, size_t buffsize, const HttpResponse res);
 
 /**
  * @brief Формирует структуру HttpResponse и отправляет клиенту ошибку

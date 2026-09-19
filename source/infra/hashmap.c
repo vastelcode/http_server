@@ -56,7 +56,7 @@ void free_hashmap(HashMap *hashmap)
  *
  * @see hashmap_get_index
  */
-unsigned long hashmap_get_hash(char *string)
+unsigned long hashmap_get_hash(const char *string)
 {
 	if(string == NULL) {
 		logger(ERROR ,stdout, NULL, "%s: Ключ имеет неопределённое значение",__func__);
@@ -104,7 +104,7 @@ HashMap *hashmap_init(size_t capacity)
  *
  * @note hashmap и key должны быть заранее определены
  */
-ssize_t hashmap_get_index(HashMap *hashmap, char *key)
+ssize_t hashmap_get_index(HashMap *hashmap,const char *key)
 {
     if (hashmap == NULL || key == NULL) return -1;
 
@@ -127,7 +127,7 @@ ssize_t hashmap_get_index(HashMap *hashmap, char *key)
  *       null-терминированные строки. Память под key и value выделяется копированием.
  * @see free_node
  */
-node_t *hashmap_create_node(char *key, char *value)
+node_t *hashmap_create_node(const char *key,const char *value)
 {
     node_t *new_node = calloc(1, sizeof(node_t));
 
@@ -226,7 +226,7 @@ status_exec hashmap_rehash(HashMap **hashmap, size_t new_size)
 }
 
 
-node_t *hashmap_get_node(HashMap *hashmap, char *key)
+node_t *hashmap_get_node(HashMap *hashmap,const char *key)
 {
     if (key == NULL) {
         logger(ERROR, stdout, NULL, "%s: Ключ имеет неопределённое значение", __func__);
@@ -250,7 +250,7 @@ node_t *hashmap_get_node(HashMap *hashmap, char *key)
 }
 
 
-status_exec hashmap_add(HashMap **hashmap, char *key, char *value)
+status_exec hashmap_add(HashMap **hashmap,const char *key,const char *value)
 {
     if (key == NULL || value == NULL) {
         logger(ERROR, stdout, NULL, "%s: Ключ или значение неопределены", __func__);
@@ -313,7 +313,7 @@ status_exec hashmap_add(HashMap **hashmap, char *key, char *value)
 }
 
 
-status_exec hashmap_delete(HashMap *hashmap, char *key)
+status_exec hashmap_delete(HashMap *hashmap,const char *key)
 {
     if (key == NULL) {
         logger(ERROR, stdout, NULL, "%s: Ключ имеет неопределённое значение", __func__);

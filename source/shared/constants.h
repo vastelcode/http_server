@@ -12,7 +12,8 @@ typedef enum {
 	default_queue_capaicty = 10, // базовая вместимость очереди
 	default_body_size = 1024, // базовый размер тела запроса
 	default_request_size = 2048, // базовая длина запроса
-	base_length_dstr = 64 // базовая длина динамической строки
+	base_length_dstr = 64, // базовая длина динамической строки
+	BATCH_SIZE = 16 * 1024 // размер порции отправляемых данных
 } sizes;
 
 typedef enum {
@@ -33,7 +34,9 @@ typedef enum {
 	max_body_size = UINT16_MAX,
 
 	// размер пути запроса
-	max_path_len = 2048
+	max_path_len = 2048,
+
+	MAX_SIZE_HEADERS = 4096
 } min_max;
 
 typedef enum {

@@ -3,6 +3,7 @@
 #ifndef SERVER
 
 #include <sys/socket.h>
+#include <stdio.h>
 
 #define SERVER
 
@@ -21,4 +22,14 @@
  */
 int socket_create(const struct sockaddr *addr, int backlog);
 
+/**
+ * @brief Полная отправка данных из буфера клиенту
+ * 
+ * @param[in] client_fd Клиентский дескриптор
+ * @param[in] buffer Буфер с данными
+ * @param[in] buffsize Размер буфера с данными
+ * 
+ * @return кол-во отправленных байт | -1
+ */
+ssize_t socket_send_all(int client_fd, const char *buffer, size_t buffsize);
 #endif

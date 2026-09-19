@@ -2,6 +2,9 @@
 
 #ifndef PATH
 
+#include "types.h"
+#include "hashmap.h"
+
 #define PATH
 
 /**
@@ -61,5 +64,35 @@ status_exec path_url_decode(const char *input, char *out, size_t out_size);
  * - fail при некорректных аргументах или переполнении буфера
  */
 status_exec path_realpath(const char *input, char *out, size_t out_size);
+
+/**
+ * @brief Получает расширение файла
+ * 
+ * @param[in] path Путь до файла
+ * 
+ * @return NULL | "ext"
+ * 
+ * @note Присутствует динамическое выделение памяти для расширения
+ */
+char *path_get_extension(const char *path);
+
+/**
+ * @brief Инициализация хэш-таблицы MIME-типов
+ * 
+ * @return NULL | Указатель на структуру HashMap
+ * 
+ * @note Присутствует динамическое выделение памяти
+ */
+HashMap *path_init_mime(void);
+
+/**
+ * @brief Получает MIME-тип файла
+ * 
+ * @param[in] path Путь до файла
+ * @param[in] table Указатель на таблицу MIME-типов
+ * 
+ * @return NULL | MIME-тип
+ */
+char *path_get_mime(HashMap *table, const char *path);
 
 #endif

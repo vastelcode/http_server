@@ -79,26 +79,31 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 	buffer[n] = '\0';
 
 	// 2. Парсим HTTP-запрос
-	HttpRequest req = {0};
+	HttpRequest *req = calloc(1, sizeof(HttpRequest));
 
-	if(http_parse_request(buffer, strlen(buffer), &req) == fail) {
+	if(req == NULL) {
+		logger(ERROR, stdout, NULL, "%s: Не удалось выделить память",__func__);
+		return fail;
+	}
+
+	if(http_parse_request(buffer, strlen(buffer), req) == fail) {
 		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при парсинге HTTP-запроса",__func__);
 		http_send_error(task->client_fd, BadRequest);
 		return fail;
 	}
 
-	task->request = &req;
+	task->request = req;
 
 	// 3. Декодируем путь
 	char decoded_path[2048];
 
-	if(path_url_decode(req.path, decoded_path, 2048) == fail) {
+	if(path_url_decode(req->path, decoded_path, 2048) == fail) {
 		http_send_error(task->client_fd, BadRequest);
 		return fail;
 	}
 
-	free((&req)->path);
-	req.path = NULL;
+	free(req->path);
+	req->path = NULL;
 
 	// 4. Нормализуем путь
 	char *canonized_path = malloc(sizeof(char) * (strlen(decoded_path) + 1));
@@ -116,13 +121,13 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 		return fail;
 	}
 
-	req.path = canonized_path;
+	req->path = canonized_path;
 
 	// 5. Помещаем задачу в диспетчер
 	http_code_t code_dispatch = dispatch_request(task, ctx->config);
 
 	if(code_dispatch != OK) {
-		logger(INFO, stdout, &mutexLog, "%d (%s) %s %s",code_dispatch, http_code_to_string(code_dispatch),http_method_to_string(req.method), req.path);
+		logger(INFO, stdout, &mutexLog, "%d (%s) %s %s",code_dispatch, http_code_to_string(code_dispatch),http_method_to_string(req->method), req->path);
 		return fail;
 	}
 
@@ -167,8 +172,8 @@ void thread_pool_submit(Context *context, task_t *task)
 	// предобработка задачи
 	if(thread_pool_preprocessing(task, context) == fail) {
 		pthread_mutex_unlock(&mutexTask);
-		free_task(task);
 		close(task->client_fd);
+		free_task(task);
 		return;
 	}
 
