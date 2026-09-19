@@ -14,10 +14,8 @@
 #include "../shared/server.h"
 #include "../shared/types.h"
 
-status_exec static_handler(task_t *task, HashMap *config)
+status_exec static_handler(task_t *task, HashMap *mime_table)
 {
-	if(config == NULL) return fail; /* заглушка */
-
 	// 1. Проверяем права на чтение
 
 	// 1.1 Получаем статические данные
@@ -38,11 +36,8 @@ status_exec static_handler(task_t *task, HashMap *config)
 	}
 
 	// 2. Получаем MIME-тип 
-	HashMap *table = path_init_mime();
 
-	char *mime_type = path_get_mime(table, task->fullpath);
-	
-	free_hashmap(table);
+	char *mime_type = path_get_mime(mime_table, task->fullpath);
 
 	if(mime_type == NULL) {
 		http_send_error(task->client_fd, BadRequest);

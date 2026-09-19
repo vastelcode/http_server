@@ -58,6 +58,7 @@ status_exec thread_pool_stop(Context *context) {
     // 6. Освобождаем контекст (если нужно)
 	free_hashmap(context->config);
 	free_queue(context->tasks);
+	free_hashmap(context->mime_table);
 
     return success;
 }
@@ -156,7 +157,7 @@ void *thread_pool_routine(void *arg)
 		// выполняем задачу
 		if(target) {
 
-			if(target->handler && target->handler(target, ctx->config) == fail) close(target->client_fd);
+			if(target->handler && target->handler(target, ctx->mime_table) == fail) close(target->client_fd);
 
 			free_task(target);
 		}

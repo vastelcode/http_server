@@ -17,6 +17,7 @@
 #include "../shared/thread_pool.h"
 #include "../shared/free.h"
 #include "../shared/server.h"
+#include "../shared/path.h"
 #include "../shared/types.h"
 #include "../shared/constants.h"
 
@@ -63,18 +64,32 @@ status_exec server_run(HashMap *config)
 
 	logger(INFO, stdout, NULL, "%s: Успешная инициализация очереди",__func__);
 
-	// 3. Запуск пула потоков
+	// 3. Инициализация таблицы MIME-типов
 
-	// 3.1 Формирование контекста
+	HashMap *mime_table = path_init_mime();
+
+	if(mime_table == NULL) {
+		free_hashmap(config);
+		free_queue(tasks);
+		return fail;
+	}
+
+	logger(INFO, stdout, NULL, "%s: Успешная инициализация таблицы MIME-типов",__func__);
+
+	// 4. Запуск пула потоков
+
+	// 4.1 Формирование контекста
 	Context ctx = {0};
 	ctx.tasks = tasks;
 	ctx.config = config;
+	ctx.mime_table = mime_table;
 
-	// 3.2 Запуск
+	// 4.2 Запуск
 	if(thread_pool_start(&ctx, amount_threads) == fail) {
 		logger(ERROR, stdout, NULL, "%s: Не удалось запустить потоки выполнения",__func__);
 		free_hashmap(config);
 		free_queue(tasks);
+		free_hashmap(mime_table);
 		return fail;
 	}
 

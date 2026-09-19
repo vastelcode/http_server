@@ -93,7 +93,7 @@ typedef struct task {
 	int client_fd; // клиентский сокет
 	HttpRequest *request; // структура HTTP-запроса
 	char *fullpath; // полный сформированный путь
-	status_exec (* handler) (struct task *task, HashMap *config); // обработчик задачи
+	status_exec (* handler) (struct task *task, HashMap *mime_table); // обработчик задачи
 } task_t; // структура задачи
 
 typedef struct {
@@ -105,6 +105,7 @@ typedef struct {
 typedef struct {
 	Queue *tasks; // очередь задач
 	HashMap *config; // таблица конфигурации
+	HashMap *mime_table; // таблица MIME-типов
 	size_t created_threads; // кол-во созданных потоков
 	volatile int stop_requested; // флаг остановки обработки запросов
 } Context; // констекст для функционирования пула потоков

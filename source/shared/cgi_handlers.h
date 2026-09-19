@@ -23,6 +23,6 @@ int cgi_check(HttpRequest *req, HashMap *config);
  * @param[in] req Указатель на структуру HTTP-запроса
  * @param[in] fullpath Полный путь к запрашиваему файлу
  */
-status_exec cgi_handler(task_t *task, HashMap *config);
+status_exec cgi_handler(task_t *task, HashMap *mime_table);
 
 #endif

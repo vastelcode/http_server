@@ -7,9 +7,11 @@
 /**
  * @brief Обработчика запроса, запрашивающего содержимое файла
  * 
- * @param[in] req Указатель на структуру HTTP-запроса
- * @param[in] fullpath Полный путь к запрашиваему файлу
+ * @param[in] task Указатель на структуру задачи
+ * @param[in] mime_table Хэш-таблица MIME-типов
+ * 
+ * @return success | fail
  */
-status_exec static_handler(task_t *task, HashMap *config);
+status_exec static_handler(task_t *task, HashMap *mime_table);
 
 #endif
