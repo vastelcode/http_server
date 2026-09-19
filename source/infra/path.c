@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -103,4 +104,92 @@ static int hex_val(char c)
     if (c >= 'a' && c <= 'f') return c - 'a' + 10;
     if (c >= 'A' && c <= 'F') return c - 'A' + 10;
     return -1;
+}
+
+/* --- Внутренние хелперы --------------------------------------------- */
+
+static status_exec append_segment(char *out, size_t out_size, size_t *len,
+                                  const char *seg, size_t seg_len);
+
+static status_exec pop_segment(char *out, size_t *len);
+
+/* --- Публичный API -------------------------------------------------- */
+
+status_exec path_realpath(const char *input, char *out, size_t out_size)
+{
+    if (!input || !out || out_size < 2) {
+        logger(ERROR, stdout, NULL, "%s: Некорректные аргументы", __func__);
+        return fail;
+    }
+
+    /* Всегда стартуем с корня. out_len — длина без учёта NUL. */
+    out[0]     = '/';
+    out[1]     = '\0';
+    size_t out_len = 1;
+
+    const char *p = input;
+
+    while (*p) {
+        while (*p == '/') p++;           /* глотаем разделители подряд */
+        if (!*p) break;
+
+        const char *start = p;
+        while (*p && *p != '/') p++;
+        size_t seg_len = (size_t)(p - start);
+
+        if (seg_len == 1 && start[0] == '.') {
+            continue;                    /* "." — ничего не делаем */
+        }
+        if (seg_len == 2 && start[0] == '.' && start[1] == '.') {
+            if (pop_segment(out, &out_len) == fail) return fail;
+            continue;                    /* ".." — на уровень вверх */
+        }
+
+        if (append_segment(out, out_size, &out_len, start, seg_len) == fail)
+            return fail;
+    }
+
+    return success;
+}
+
+/* --- Внутренние функции -------------------------------------------- */
+
+/**
+ * Дописывает сегмент к результату, вставляя разделитель, если это
+ * не первый сегмент после корня.
+ */
+static status_exec append_segment(char *out, size_t out_size, size_t *len,
+                                  const char *seg, size_t seg_len)
+{
+    size_t sep  = (*len > 1) ? 1 : 0;   /* '/' перед сегментом, кроме корня */
+
+    /* нужен слот под разделитель + сам сегмент + завершающий NUL */
+    if (*len + sep + seg_len + 1 > out_size) {
+        logger(ERROR, stdout, NULL, "%s: Буфер переполнен", __func__);
+        return fail;
+    }
+
+    if (sep) out[(*len)++] = '/';
+
+    memcpy(out + *len, seg, seg_len);
+    *len += seg_len;
+    out[*len] = '\0';
+
+    return success;
+}
+
+/**
+ * Срезает последний сегмент пути. На корне — no-op (нельзя выйти выше).
+ */
+static status_exec pop_segment(char *out, size_t *len)
+{
+    if (*len <= 1) return success;      /* уже в корне */
+
+    while (*len > 1 && out[*len - 1] != '/')
+        (*len)--;
+
+    if (*len > 1) (*len)--;             /* снимаем сам '/' */
+    out[*len] = '\0';
+
+    return success;
 }

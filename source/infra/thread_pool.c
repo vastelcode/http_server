@@ -88,7 +88,7 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 	}
 
 	task->request = &req;
-	
+
 	// 3. Декодируем путь
 	char decoded_path[2048];
 
@@ -98,16 +98,27 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 	}
 
 	free((&req)->path);
+	req.path = NULL;
 
-	req.path = strdup(decoded_path);
+	// 4. Нормализуем путь
+	char *canonized_path = malloc(sizeof(char) * (strlen(decoded_path) + 1));
 
-	if(req.path == NULL) {
-		logger(ERROR, stdout, &mutexLog, "%s: Не удалось копировать строку",__func__);
+	if(canonized_path == NULL) {
+		logger(ERROR, stdout, &mutexLog, "%s: Не удалось выделить память",__func__);
 		http_send_error(task->client_fd, IntervalServerError);
 		return fail;
 	}
 
-	// 4. Помещаем задачу в диспетчер
+	if(path_realpath(decoded_path, canonized_path, strlen(decoded_path) + 1) == fail) {
+		logger(ERROR, stdout, &mutexLog, "%s: Не удалось нормализовать путь",__func__);
+		http_send_error(task->client_fd, IntervalServerError);
+		free(canonized_path);
+		return fail;
+	}
+
+	req.path = canonized_path;
+
+	// 5. Помещаем задачу в диспетчер
 	http_code_t code_dispatch = dispatch_request(task, ctx->config);
 
 	if(code_dispatch != OK) {

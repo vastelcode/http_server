@@ -44,4 +44,22 @@ int path_is_dir(const char *path);
  */
 status_exec path_url_decode(const char *input, char *out, size_t out_size);
 
+/**
+ * @brief Канонизирует HTTP-путь в виртуальный корень.
+ *
+ * Убирает повторные '/', сегменты '.' и '..', схлопывает пустые сегменты.
+ * Результат всегда абсолютный (начинается с '/') и НИКОГДА не выходит
+ * выше корня: последовательность '/../' на верхнем уровне — no-op.
+ *
+ * @param[in]  input     Исходный путь (произвольная строка, не NULL)
+ * @param[out] out       Буфер для результата (не NULL)
+ * @param[in]  out_size  Размер буфера; минимум 2 байта
+ *
+ * @return
+ * - success при успешном выполнении
+ * @return
+ * - fail при некорректных аргументах или переполнении буфера
+ */
+status_exec path_realpath(const char *input, char *out, size_t out_size);
+
 #endif
