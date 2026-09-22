@@ -49,6 +49,7 @@ typedef enum {
 	BadRequest = 400,
 	ForBidden = 403,
 	RequestEntityTooLarge = 413,
+	LengthRequired = 411, 
 	IntervalServerError = 500,
 	HTTP_CODE_UNKWOWN = -1
 } http_code_t;
@@ -65,7 +66,7 @@ typedef enum {
 typedef struct {
     http_method_t  method;
     char *path, *body;
-	char query[max_path_len];
+	char query[MAX_PATH_LEN];
     http_version_t version;
     HashMap *headers;
     size_t body_len;

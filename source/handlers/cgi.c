@@ -1,12 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include "../shared/hashmap.h"
 #include "../shared/constants.h"
 #include "../shared/dstr.h"
 #include "../shared/http.h"
 #include "../shared/utils.h"
+#include "../shared/types.h"
+#include "../shared/config.h"
 #include "../shared/logger.h"
 
 int cgi_check(HttpRequest *req, HashMap *config)
@@ -45,10 +52,10 @@ int cgi_check(HttpRequest *req, HashMap *config)
 	return 1;
 }
 
-status_exec cgi_handler(task_t *task, HashMap *config)
+status_exec cgi_handler(task_t *task, HashMap *mime_table)
 {
-	if(config == NULL) return fail;
-	printf("CGI: Полный путь = %s | Путь запроса = %s\n",task->fullpath, task->request->path);
+	if(mime_table == NULL) return fail; /* заглушка */
+	http_send_error(task->client_fd, OK);
 	close(task->client_fd);
 	return success;
 }

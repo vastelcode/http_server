@@ -3,6 +3,5 @@
 main
 *.o
 www
-idea.md
-req.md
-source/tests
+docs
+.git

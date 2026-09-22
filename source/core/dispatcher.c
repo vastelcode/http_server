@@ -11,11 +11,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
 http_code_t dispatch_request(task_t *task, HashMap *config)
 {
 	// 1. Валидация метода запроса
-	if(task->request->method != HTTP_METHOD_GET && task->request->method != HTTP_METHOD_POST) {
+	if(task->request->method != HTTP_METHOD_GET) {
 		//  Отправляем ошибку "Не поддерживается"
 		http_send_error(task->client_fd, NotAllowed);
 		return NotAllowed;
@@ -85,17 +86,39 @@ http_code_t dispatch_request(task_t *task, HashMap *config)
 		return NotFound;
 	}
 
-	// добавляем в структуру задачи полный сформированный путь
-	task->fullpath = strdup(fullpath.buffer);
-
-	free((&fullpath)->buffer);
-
-	if(task->fullpath == NULL) {
-		logger(ERROR, stdout, NULL, "%s: Не удалось выделить память",__func__);
+	/* Добавляем вызов realpath для защиты от симлинков */
+	if((task->fullpath = realpath(fullpath.buffer, NULL)) == NULL) {
+		logger(ERROR,stdout, NULL, "%s: Не удалось канонизировать путь", __func__);
 		http_send_error(task->client_fd, IntervalServerError);
+		free((&fullpath)->buffer);
 		return IntervalServerError;
 	}
 
+	/* Формируем строку, с которой должен начинаться путь */
+	char begin_with[PATH_MAX];
+	snprintf(begin_with, sizeof(begin_with), "%s/%s", cwd, root_dir->value);
+
+	/* Канонизируем путь */
+	char real_begin[PATH_MAX];
+
+	if(realpath(begin_with, real_begin) == NULL) {
+		logger(ERROR,stdout, NULL, "%s: Не удалось канонизировать путь", __func__);
+		http_send_error(task->client_fd, IntervalServerError);
+		free((&fullpath)->buffer);
+		return IntervalServerError;
+	}
+
+	/* Сравниваем начало */
+	if(strncmp(task->fullpath, real_begin, strlen(real_begin)) != 0
+	|| (task->fullpath[strlen(real_begin)] != '\0' && task->fullpath[strlen(real_begin)] != '/')) {
+		http_send_error(task->client_fd, ForBidden);
+		free((&fullpath)->buffer);
+		return ForBidden;
+	}
+
+	free((&fullpath)->buffer);
+
+	/* Определяем обработчик */
 	if(is_cgi) task->handler = cgi_handler;
 	else task->handler = static_handler;
 

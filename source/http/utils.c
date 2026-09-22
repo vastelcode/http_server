@@ -86,10 +86,11 @@ const char *http_code_to_string(http_code_t code)
         case OK:     return "OK";
         case NotFound:    return "Not Found";
         case NotAllowed:    return "Not Allowed";
-		case ForBidden: return "For Bidden";
+		case ForBidden: return "Forbidden";
 		case RequestEntityTooLarge: return "Request Entity Too Large";
 		case BadRequest: return "Bad Request";
 		case IntervalServerError: return "Interval Server Error";
+		case LengthRequired: return "Length Required";
         default:                  return "UNKNOWN";
     }
 }
@@ -107,9 +108,10 @@ http_code_t http_code_from_string(const char *s)
 	else if(strcmp(lower_s, "not allowed") == 0) target = NotAllowed;
 	else if(strcmp(lower_s, "not found") == 0) target = NotFound;
 	else if(strcmp(lower_s, "bad request") == 0) target = BadRequest;
-	else if(strcmp(lower_s, "for bidden") == 0) target = ForBidden;
+	else if(strcmp(lower_s, "forbidden") == 0) target = ForBidden;
 	else if(strcmp(lower_s, "request entity too large") == 0) target = RequestEntityTooLarge;
 	else if(strcmp(lower_s, "interval server error") == 0) target = IntervalServerError;
+	else if(strcmp(lower_s, "length required") == 0) target = LengthRequired;
 
 	free(lower_s);
 

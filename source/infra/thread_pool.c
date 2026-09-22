@@ -67,13 +67,19 @@ status_exec thread_pool_stop(Context *context) {
 static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 {
 	// 1. Читаем данные от клиента
-	char buffer[1024];
+	char buffer[MAX_REQUEST_SIZE + 1];
 
 	ssize_t n = recv(task->client_fd, buffer, sizeof(buffer), 0);
 
 	if(n <= 0) {
 		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при чтении данных от клиента",__func__);
 		http_send_error(task->client_fd, IntervalServerError);
+		return fail;
+	}
+
+	if(n == MAX_REQUEST_SIZE + 1) {
+		logger(ERROR, stdout, &mutexLog, "%s: Запрос слишком большой",__func__);
+		http_send_error(task->client_fd, RequestEntityTooLarge);
 		return fail;
 	}
 
@@ -90,6 +96,7 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 	if(http_parse_request(buffer, strlen(buffer), req) == fail) {
 		logger(ERROR, stdout, &mutexLog, "%s: Произошла ошибка при парсинге HTTP-запроса",__func__);
 		http_send_error(task->client_fd, BadRequest);
+		free(req);
 		return fail;
 	}
 
@@ -106,25 +113,15 @@ static status_exec thread_pool_preprocessing(task_t *task, Context *ctx)
 	free(req->path);
 	req->path = NULL;
 
-	// 4. Нормализуем путь
-	char *canonized_path = malloc(sizeof(char) * (strlen(decoded_path) + 1));
+	req->path = strdup(decoded_path);
 
-	if(canonized_path == NULL) {
-		logger(ERROR, stdout, &mutexLog, "%s: Не удалось выделить память",__func__);
+	if(req->path == NULL) {
+		logger(ERROR, stdout, &mutexLog, "%s: Не удалось выделить память", __func__);
 		http_send_error(task->client_fd, IntervalServerError);
 		return fail;
 	}
 
-	if(path_realpath(decoded_path, canonized_path, strlen(decoded_path) + 1) == fail) {
-		logger(ERROR, stdout, &mutexLog, "%s: Не удалось нормализовать путь",__func__);
-		http_send_error(task->client_fd, IntervalServerError);
-		free(canonized_path);
-		return fail;
-	}
-
-	req->path = canonized_path;
-
-	// 5. Помещаем задачу в диспетчер
+	// 4. Помещаем задачу в диспетчер
 	http_code_t code_dispatch = dispatch_request(task, ctx->config);
 
 	if(code_dispatch != OK) {

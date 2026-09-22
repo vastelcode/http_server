@@ -61,7 +61,7 @@ status_exec http_parse_request(const char *buf, size_t len, HttpRequest *req)
     }
 
     /* 4. Инициализируем хэшмап заголовков */
-    req->headers = hashmap_init(default_hashmap_capacity);
+    req->headers = hashmap_init(DEFAULT_HASHMAP_CAPACITY);
     if (!req->headers) {
         free(headers_buf);
         return fail;
@@ -145,7 +145,7 @@ static status_exec parse_request_line(char *line, HttpRequest *req)
     char *qmark = strchr(target, '?');
     if (qmark) {
         size_t path_len = (size_t)(qmark - target);
-        if (path_len >= max_path_len) return fail;
+        if (path_len >= MAX_PATH_LEN) return fail;
 
 		req->path = malloc(path_len + 1);
 		if(!req->path) return fail;
@@ -154,12 +154,12 @@ static status_exec parse_request_line(char *line, HttpRequest *req)
 
         const char *q = qmark + 1;
         size_t q_len = strlen(q);
-        if (q_len >= max_path_len) return fail;
+        if (q_len >= MAX_PATH_LEN) return fail;
 
         memcpy(req->query, q, q_len + 1);
     } else {
         size_t path_len = strlen(target);
-        if (path_len >= max_path_len) return fail;
+        if (path_len >= MAX_PATH_LEN) return fail;
 
 		req->path = malloc(path_len + 1);
 		if(!req->path) return fail;

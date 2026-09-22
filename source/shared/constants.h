@@ -6,13 +6,9 @@
 #define CONSTANTS
 
 typedef enum {
-	default_size_buffer_string = 1024, // размер буфера для записи
-	default_length_token = 256, // размер подстроки
-	default_hashmap_capacity = 4, // базовая вместимость хэш-таблицы
-	default_queue_capaicty = 10, // базовая вместимость очереди
-	default_body_size = 1024, // базовый размер тела запроса
-	default_request_size = 2048, // базовая длина запроса
-	base_length_dstr = 64, // базовая длина динамической строки
+	DEFAULT_SIZE_BUFFER = 1024, // размер буфера для записи
+	DEFAULT_HASHMAP_CAPACITY = 4, // базовая вместимость хэш-таблицы
+	BASE_LENGTH_DSTR = 64, // базовая длина динамической строки
 	BATCH_SIZE = 16 * 1024 // размер порции отправляемых данных
 } sizes;
 
@@ -34,9 +30,10 @@ typedef enum {
 	max_body_size = UINT16_MAX,
 
 	// размер пути запроса
-	max_path_len = 2048,
-
-	MAX_SIZE_HEADERS = 4096
+	MAX_PATH_LEN = 2048,
+	MAX_SIZE_HEADERS = 4096,
+	MAX_BODY_SIZE = 64 * 1024,
+	MAX_REQUEST_SIZE = MAX_PATH_LEN + MAX_SIZE_HEADERS + MAX_BODY_SIZE
 } min_max;
 
 typedef enum {
@@ -44,11 +41,6 @@ typedef enum {
 	default_backlog = 5, // кол-во одновременных подключений по умолчанию
 	default_port = 8080 // порт запуска сервера
 } default_config;
-
-typedef enum {
-	recv_val = 100,
-	send_val = 200
-} server_operation;
 
 typedef enum statuses {
 	fail = -1,

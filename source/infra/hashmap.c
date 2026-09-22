@@ -87,7 +87,7 @@ HashMap *hashmap_init(size_t capacity)
     }
 
     hashmap->amount = 0;
-    hashmap->capacity = (capacity > 0) ? capacity : default_hashmap_capacity;
+    hashmap->capacity = (capacity > 0) ? capacity : DEFAULT_HASHMAP_CAPACITY;
     return hashmap;
 }
 
@@ -189,7 +189,7 @@ void hashmap_log(HashMap *hashmap)
  * - fail в случае ошибки
  *
  * @note Если new_size равен 0, используется значение
- *       default_hashmap_capacity * 2. При успехе старая таблица
+ *       DEFAULT_HASHMAP_CAPACITY * 2. При успехе старая таблица
  *       освобождается, а *hashmap указывает на новую. При ошибке
  *       исходная таблица остаётся без изменений.
  * @see hashmap_init
@@ -198,7 +198,7 @@ void hashmap_log(HashMap *hashmap)
  */
 status_exec hashmap_rehash(HashMap **hashmap, size_t new_size)
 {
-    if (new_size <= 0) new_size = default_hashmap_capacity * 2;
+    if (new_size <= 0) new_size = DEFAULT_HASHMAP_CAPACITY * 2;
 
     HashMap *new = hashmap_init(new_size); // выделяем память на новую таблицу
 

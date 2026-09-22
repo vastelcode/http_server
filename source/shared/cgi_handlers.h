@@ -2,6 +2,7 @@
 
 #include "hashmap.h"
 #include "http.h"
+#include "types.h"
 
 #define CGI_HANDLERS
 

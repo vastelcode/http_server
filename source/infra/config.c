@@ -66,7 +66,7 @@ status_exec add_parameter(HashMap **hashmap,char *buffer)
 
 HashMap *get_default_config(void)
 {
-	HashMap *hashmap = hashmap_init(default_hashmap_capacity); // выделяем память на хэш-таблицу
+	HashMap *hashmap = hashmap_init(DEFAULT_HASHMAP_CAPACITY); // выделяем память на хэш-таблицу
 
 	if(hashmap == NULL) {
 		logger(ERROR, stdout, NULL, "%s: Не удалось выделить память", __func__);
@@ -106,7 +106,7 @@ HashMap *get_config(void)
 	// 2.2 Формируем полный путь
 
 	dstr_t path = {0};
-	if(dstr_init(&path, base_length_dstr) == -1) {
+	if(dstr_init(&path, BASE_LENGTH_DSTR) == -1) {
 		free_hashmap(config);
 		return NULL;
 	}
@@ -129,7 +129,7 @@ HashMap *get_config(void)
 
 	free(config_path);
 
-	char buffer[default_size_buffer_string]; // буфер для записи строки
+	char buffer[DEFAULT_SIZE_BUFFER]; // буфер для записи строки
 
 	// построчно читаем файл
 	while(fgets(buffer, sizeof(buffer), file)) {

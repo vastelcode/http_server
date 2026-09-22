@@ -61,7 +61,7 @@ status_exec static_handler(task_t *task, HashMap *mime_table)
 	// 3.2 Запись заголовков
 
 	/* Заголовки */
-	response.headers = hashmap_init(default_hashmap_capacity);
+	response.headers = hashmap_init(DEFAULT_HASHMAP_CAPACITY);
 
 	if(!response.headers) {
 		http_send_error(task->client_fd, IntervalServerError);
